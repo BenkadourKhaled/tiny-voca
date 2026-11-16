@@ -104,6 +104,7 @@ Languages and voices:
 - [apptor-tiny-tts](https://huggingface.co/apptor/apptor-tiny-tts): German.
 - [tiny-voca-it](https://github.com/carbogninalberto/tiny-voca-it): Italian.
 - [zerre-tts](https://github.com/erkinemreta1/zerre-tts): Turkish.
+- [korean-tts](https://github.com/ooodev/korean-tts): Korean, and Korean mixed with English.
 - [fiato](https://huggingface.co/cfahlgren1/fiato): English, with sighs, exhales and gasps.
 
 Ports and apps:
