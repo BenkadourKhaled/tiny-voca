@@ -105,6 +105,7 @@ Languages and voices:
 - [tiny-voca-it](https://github.com/carbogninalberto/tiny-voca-it): Italian.
 - [zerre-tts](https://github.com/erkinemreta1/zerre-tts): Turkish.
 - [korean-tts](https://github.com/ooodev/korean-tts): Korean, and Korean mixed with English.
+- [slyszeglosy](https://github.com/damaon/slyszeglosy): Polish.
 - [fiato](https://huggingface.co/cfahlgren1/fiato): English, with sighs, exhales and gasps.
 
 Ports and apps:
