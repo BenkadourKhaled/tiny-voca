@@ -113,6 +113,7 @@ Languages and voices:
 Ports and apps:
 
 - [voca](https://github.com/sultson/voca): a rewrite in Rust.
+- [tiny-voca-esp32s3](https://github.com/ngxson/tiny-voca-esp32s3): runs on an ESP32-S3 microcontroller.
 - [tiny-voca-dashboard](https://github.com/kleenpulse/tiny-voca-dashboard): a local dashboard.
 - [tinyvoca](https://github.com/spurious-cox/tinyvoca): a Mac app.
 
