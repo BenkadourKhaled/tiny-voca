@@ -115,6 +115,7 @@ Ports and apps:
 - [voca](https://github.com/sultson/voca): a rewrite in Rust.
 - [tiny-voca-dashboard](https://github.com/kleenpulse/tiny-voca-dashboard): a local dashboard.
 - [tinyvoca](https://github.com/spurious-cox/tinyvoca): a Mac app.
+- [tiny-voca-esp32s3](https://github.com/ngxson/tiny-voca-esp32s3): ESP32-S3 port.
 
 Same idea, other sounds:
 
