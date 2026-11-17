@@ -107,6 +107,7 @@ Languages and voices:
 - [korean-tts](https://github.com/ooodev/korean-tts): Korean, and Korean mixed with English.
 - [slyszeglosy](https://github.com/damaon/slyszeglosy): Polish.
 - [mini-voz](https://github.com/ElMariones/mini-voz): Spanish, with a Castilian accent.
+- [tiny-voca-es](https://github.com/stdevMac/tiny-voca): Spanish from Spain, with a browser demo.
 - [alpa](https://huggingface.co/77ethers/alpa): Sanskrit, fine-tuned from tiny-voca on a CPU.
 - [fiato](https://huggingface.co/cfahlgren1/fiato): English, with sighs, exhales and gasps.
 
