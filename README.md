@@ -106,6 +106,7 @@ Languages and voices:
 - [zerre-tts](https://github.com/erkinemreta1/zerre-tts): Turkish.
 - [korean-tts](https://github.com/ooodev/korean-tts): Korean, and Korean mixed with English.
 - [slyszeglosy](https://github.com/damaon/slyszeglosy): Polish.
+- [mini-voz](https://github.com/ElMariones/mini-voz): Spanish, with a Castilian accent.
 - [fiato](https://huggingface.co/cfahlgren1/fiato): English, with sighs, exhales and gasps.
 
 Ports and apps:
