@@ -225,10 +225,21 @@ def export(model, path, external_noise=False, opset=17):
 def metadata(model, checkpoint):
     c = model.config
     state = torch.load(checkpoint, map_location="cpu", weights_only=True)
-    return {"sample_rate": c.sample_rate, "hop": c.hop, "voices": list(c.speakers), "symbols": list(SYMBOLS),
-            "max_tokens": c.max_tokens, "max_frames": c.max_frames, "step": state.get("step"),
-            "frontend": frontend_identity().get("phonemizer", "espeak"), "frontend_fingerprint": frontend_fingerprint(),
-            "inputs": list(INPUTS), "outputs": list(OUTPUTS)}
+    identity = frontend_identity()
+    # English records the phonemizer under "phonemizer" ("espeak"/"dizione");
+    # Arabic under "frontend" ("rules"/"espeak"). Keep both readable by the demo.
+    frontend_name = identity.get("phonemizer") or identity.get("frontend") or "espeak"
+    result = {"sample_rate": c.sample_rate, "hop": c.hop, "voices": list(c.speakers), "symbols": list(SYMBOLS),
+              "max_tokens": c.max_tokens, "max_frames": c.max_frames, "step": state.get("step"),
+              "language": identity.get("language", "en"), "frontend": frontend_name,
+              "frontend_fingerprint": frontend_fingerprint(),
+              "inputs": list(INPUTS), "outputs": list(OUTPUTS)}
+    # Keep the corpus attribution inside the exported artefact, as required by CC BY 4.0.
+    if result["language"] == "ar":
+        from .arabic_data import SOURCE_CITATION, SOURCE_LICENSE, SOURCE_PAGE
+        result["data_source"] = {"name": "Arabic Speech Corpus (Halabi 2016)", "url": SOURCE_PAGE,
+                                 "license": SOURCE_LICENSE, "citation": SOURCE_CITATION}
+    return result
 
 
 def main():

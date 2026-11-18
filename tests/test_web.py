@@ -1,8 +1,9 @@
-"""The demo plays each sentence as soon as it is made, and skips what it cannot read.
+"""The Arabic demo plays each sentence as soon as it is made, and skips what it cannot read.
 
 The demo's own JavaScript is run with node: the player with a stand-in for the browser's audio clock, the
-worker's speak() with a stand-in for the model. Those tests are skipped when node is not installed. The few
-lines of Python the worker runs in the browser are run here as they are.
+worker's speak() and its sentence rules with stand-ins for the Pyodide phonemizer and the model. Those tests
+are skipped when node is not installed. The few lines of Python the worker runs in the browser are run here
+as they are, against the exact G2P module shipped under web/public/assets/.
 """
 
 import json
@@ -10,20 +11,15 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import types
 import unittest
 
 from tiny_voca.config import Config
 
-try:
-    import dizione
-    from dizione.engine import default_directory
-    HAVE_DIZIONE = (default_directory() / "lexicon.tsv").exists()
-except ImportError:
-    dizione, HAVE_DIZIONE = None, False
-
 PUBLIC = Path(__file__).resolve().parents[1] / "web" / "public"
-ENGLISH_ONLY = "tiny-voca only reads English for now."
+ROOT = PUBLIC.parents[1]
+ARABIC_ONLY = "يقرأ tiny-voca النص العربي المشكّل فقط."
 
 CLOCK = r"""
 const fs = require("fs");
@@ -165,11 +161,12 @@ console.log(JSON.stringify(facts));
 
 PAGE = CLOCK + r"""
 const html = fs.readFileSync(process.argv[2], "utf8");
-const script = html.match(/<script>\n([\s\S]*?)<\/script>/)[1];
+const script = html.match(/<script>\r?\n([\s\S]*?)<\/script>/)[1];
 // The voice buttons as the page has them. The checked one is the voice of a page that nobody has touched.
 const voices = [...html.matchAll(/<input type="radio" name="voice" value="(\d+)"( checked)?><span>(\w+)<\/span>/g)]
   .map(([, value, checked, name]) => ({ value, name, checked: Boolean(checked) }));
 facts.voices = voices;
+facts.examples = new Function("return " + html.match(/const EXAMPLES = (\[[\s\S]*?\n\]);/)[1])();
 
 // In place of the browser: elements that only hold what the page sets on them, and a worker that notes what it
 // is sent. The page's own script runs as it is. `sound` says whether this browser has Web Audio.
@@ -188,21 +185,21 @@ function open(sound) {
   new Function("document", "window", "Worker", "livePlayer", script)(document, window, Worker, livePlayer);
   const say = (data) => workers[0].onmessage({ data });
   say({ type: "ready", sampleRate: RATE });
-  elements.text.value = "Some text.";
+  elements.text.value = "مَرْحَبًا";
   elements.text.oninput();
   const look = () => ({ status: elements.status.textContent, button: elements.speak.textContent, disabled: elements.speak.disabled,
                         plays: elements.audio.plays, pauses: elements.audio.pauses, shown: !elements.result.hidden,
                         starts: contexts.length ? starts(contexts[0]) : [], cut: contexts.length ? contexts[0].started.map((source) => source.cut) : [] });
   return { click: () => elements.speak.onclick(), player: elements.audio, sent: workers[0].sent, say, look, context: () => contexts[0] };
 }
-const sentence = (id, index, total) => ({ type: "sentence", id, index, total, phonemes: "<bos> t <eos>", audio: tone(RATE, 0.1), sampleRate: RATE });
+const sentence = (id, index, total) => ({ type: "sentence", id, index, total, phonemes: "<bos> مَرْحَبًا <eos>", audio: tone(RATE, 0.1), sampleRate: RATE });
 const done = (id, seconds) => ({ type: "done", id, audio: tone(RATE * seconds, 0.1), sampleRate: RATE, totalTime: 500, phonemeTime: 20, modelTime: 400 });
 
 { // Nothing in the text could be read; then a real failure.
   const page = open(true);
   page.click();
   const asked = page.sent[page.sent.length - 1];
-  page.say({ type: "error", id: 1, message: "tiny-voca only reads English for now.", plain: true });
+  page.say({ type: "error", id: 1, message: "يقرأ tiny-voca النص العربي المشكّل فقط.", plain: true });
   const plain = page.look();
   page.click();
   page.say({ type: "error", id: 2, message: "the model broke" });
@@ -249,26 +246,24 @@ const fs = require("fs");
 const source = fs.readFileSync(process.argv[1], "utf8");
 const take = (pattern) => source.match(pattern)[0];
 const code = [take(/const ABBREVIATIONS = .*;/), take(/function sentences\(text\) \{[\s\S]*?\n\}/),
-              take(/function finished\(text\) \{[\s\S]*?\n\}/), take(/function fit\(sentence\) \{[\s\S]*?\n\}/),
-              take(/const PEAK = .*;/), take(/function limitPeak\(samples\) \{[\s\S]*?\n\}/),
-              take(/const ENGLISH_ONLY = .*;/), take(/async function speak\(\{[\s\S]*?\n\}/), "return speak;"].join("\n");
+               take(/function finished\(text\) \{[\s\S]*?\n\}/), take(/function fit\(sentence\) \{[\s\S]*?\n\}/),
+               take(/const PEAK = .*;/), take(/function limitPeak\(samples\) \{[\s\S]*?\n\}/),
+               take(/const ARABIC_ONLY = .*;/), take(/async function speak\(\{[\s\S]*?\n\}/), "return speak;"].join("\n");
 
-// In place of the phonemizer and the model. The phonemizer answers the way the worker's own does: the phonemes of
-// a sentence, or "null" when there is nothing in it to pronounce (here "XD" and other scripts). The model gives
-// a tone, loud when the sentence says so. Messages are passed on the way the browser does it: what is handed
-// over is gone here.
+// In place of the phonemizer and the model. Only Arabic letters give a sentence; "XD" and other scripts give
+// "null". The model gives a tone, loud when the sentence says so. Messages travel as the browser sends them.
 const wave = (text) => Float32Array.from({ length: 400 + 100 * text.length },
-                                         (_, i) => (text.includes("loud") ? 1.2 : 0.5) * Math.sin(i / 5 + 1.5));
+                                         (_, i) => (text.includes("صاخ") ? 1.2 : 0.5) * Math.sin(i / 5 + 1.5));
 const order = [];
 const messages = [];
-const phonemize = (sentence) => (/[A-Za-z]/.test(sentence.replace(/XD/g, ""))
+const phonemize = (sentence) => (/[\u0600-\u06FF]/.test(sentence)
                                  ? JSON.stringify({ text: sentence, ids: [1], stress: [0] }) : "null");
 const synthesize = async (phones) => { order.push("made " + phones.text); return wave(phones.text); };
 const postMessage = (message, transfer = []) => {
   order.push(message.type === "sentence" ? "sent " + message.phonemes : message.type);
   messages.push(structuredClone(message, { transfer }));
 };
-const config = { sample_rate: 24000, model: { max_tokens: 512 } };
+const config = { sample_rate: 24000, max_tokens: 512 };
 const speak = new Function("phonemize", "synthesize", "postMessage", "config", code)(phonemize, synthesize, postMessage, config);
 const peak = (samples) => samples.reduce((most, value) => Math.max(most, Math.abs(value)), 0);
 
@@ -290,41 +285,53 @@ speak({ id: 7, text: process.argv[2], voice: 0, speed: 1 }).then(() => {
 });
 """
 
+RULES = r"""
+const fs = require("fs");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const take = (pattern) => source.match(pattern)[0];
+const code = [take(/const ABBREVIATIONS = .*;/), take(/function sentences\(text\) \{[\s\S]*?\n\}/),
+              take(/function finished\(text\) \{[\s\S]*?\n\}/),
+              take(/function fit\(sentence\) \{[\s\S]*?\n\}/), "return { sentences, finished, fit };"].join("\n");
+// One id per word: even a small max_tokens forces a cut, so the three config shapes can be compared.
+const onePerWord = (text) => JSON.stringify({ text, ids: Array(text.split(/\s+/).filter(Boolean).length).fill(1), stress: [0] });
+const build = (config, phonemize = onePerWord) => new Function("phonemize", "config", code)(phonemize, config);
+const facts = {};
+facts.split = build({ max_tokens: 512 }).sentences("مَرْحَبًا، كَيْفَ حَالُكَ؟ أَنَا بِخَيْرٍ! شُكْرًا. وَالسلامُ عَلَيْكُمْ؛ هَلْ أَتَيْتَ؟");
+const rules = build({ max_tokens: 512 });
+facts.finished = [
+  rules.finished("كَيْفَ حَالُكَ؟"),
+  rules.finished("مَرْحَبًا، بِالْعالَمِ!"),
+  rules.finished("ذَهَبَ الطَّالِبُ"),
+  rules.finished("نَعَمْ؛"),
+  rules.finished("   "),
+];
+const text = "واحد اثنان ثلاثة أربعة";
+facts.flat = build({ max_tokens: 14 }).fit(text).map((part) => part.text);
+facts.nested = build({ model: { max_tokens: 14 } }).fit(text).map((part) => part.text);
+facts.fallback = build({}).fit(text).map((part) => part.text);
+facts.null = build({ max_tokens: 512 }, () => "null").fit(text);
+console.log(JSON.stringify(facts));
+"""
 
-class Said:
-    """What the stand-in phonemizer below gives back, shaped like dizione's result."""
 
-    def __init__(self, words):
-        self.ids, self.stress, self.words = [1] + [5] * len(words) + [2], [0] * (len(words) + 2), words
-
-    def __str__(self):
-        return " ".join(["<bos>", *self.words, "<eos>"])
-
-
-def stand_in():
-    """In place of dizione: it reads words of plain letters. "XD", other scripts and signs give nothing to
-    pronounce, and it says so in words of its own. The word "boom" breaks it."""
-    def pieces(text):
-        words = [[] if word.lower() == "xd" else [[(word, 0)]] for word in re.findall(r"[A-Za-z]+", text)]
-        return [(False, word) for word in words] + [(True, ".")]
-
-    def phonemize(text):
-        words = [word[0][0][0] for mark, word in pieces(text) if not mark and word]
-        if "boom" in words:
-            raise ValueError("the dictionary is broken")
-        if not words:
-            raise ValueError("no word in it")
-        return Said(words)
-
-    return types.SimpleNamespace(pieces=pieces, phonemize=phonemize)
+def arabic_module():
+    """Load the exact G2P module shipped to the browser (a verbatim copy of the Python one)."""
+    path = PUBLIC / "assets" / "arabic_text.py"
+    module = types.ModuleType("arabic_text")
+    module.__file__ = str(path)
+    sys.modules["arabic_text"] = module           # dataclass needs its module registered, as in Pyodide
+    exec(compile(path.read_text(encoding="utf-8"), str(path), "exec"), module.__dict__)
+    return module
 
 
-def glue(phonemizer):
-    """``phonemize_json`` as the worker defines it for the Python that runs in the browser, with ``phonemizer`` as
-    its ``dizione``."""
+ARABIC = arabic_module()
+
+
+def glue(module):
+    """``phonemize_json`` as the worker defines it, with ``module`` standing in for the Pyodide import."""
     source = (PUBLIC / "worker.js").read_text(encoding="utf-8")
     code = re.search(r"^def phonemize_json\(text\):\n(?:(?: {4}.*)?\n)+", source, re.MULTILINE).group(0)
-    names = {"json": json, "dizione": phonemizer}
+    names = {"json": json, "arabic_text": module}
     exec(code, names)
     return names["phonemize_json"]
 
@@ -409,38 +416,64 @@ class WorkerTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         worker = str(PUBLIC / "worker.js")
-        cls.facts = node(WORKER, worker, "One. Two is loud. Three")
-        cls.mixed = node(WORKER, worker, "XD. こんにちは. One. XD. Three.")
+        cls.facts = node(WORKER, worker, "واحِدٌ. اثْنانِ صاخِبٌ. ثَلاثَةٌ")
+        cls.mixed = node(WORKER, worker, "XD. こんにちは. اثْنانِ. XD. ثَلاثَةٌ.")
         cls.unreadable = {text: node(WORKER, worker, text) for text in ("こんにちは、世界。", "XD", "XD. こんにちは. XD", "!!! ... ???")}
 
     def test_each_sentence_is_sent_before_the_next_one_is_made(self):
-        self.assertEqual(self.facts["order"], ["made One.", "sent One.", "made Two is loud.", "sent Two is loud.",
-                                               "made Three.", "sent Three.", "done"])
+        pieces = ["واحِدٌ.", "اثْنانِ صاخِبٌ.", "ثَلاثَةٌ."]
+        self.assertEqual(self.facts["order"], [item for piece in pieces for item in ("made " + piece, "sent " + piece)] + ["done"])
 
     def test_each_sentence_comes_with_its_audio_below_full_scale(self):
         sentences = self.facts["sentences"]
         self.assertEqual([(s["id"], s["index"], s["total"], s["rate"]) for s in sentences],
                          [(7, 0, 3, 24000), (7, 1, 3, 24000), (7, 2, 3, 24000)])
-        self.assertEqual([s["length"] for s in sentences], [800, 1600, 1000])
+        pieces = ["واحِدٌ.", "اثْنانِ صاخِبٌ.", "ثَلاثَةٌ."]
+        self.assertEqual([s["length"] for s in sentences], [400 + 100 * len(piece) for piece in pieces])
         self.assertEqual([s["untouched"] for s in sentences], [True, False, True])
         self.assertAlmostEqual(sentences[1]["peak"], 0.99, places=5)     # 1.2 as the model made it
 
     def test_the_whole_clip_still_comes_at_the_end(self):
         done = self.facts["last"]
-        self.assertEqual((done["type"], done["id"], done["rate"], done["length"]), ("done", 7, 24000, 3400))
+        length = sum(400 + 100 * len(piece) for piece in ("واحِدٌ.", "اثْنانِ صاخِبٌ.", "ثَلاثَةٌ."))
+        self.assertEqual((done["type"], done["id"], done["rate"], done["length"]), ("done", 7, 24000, length))
         self.assertAlmostEqual(done["peak"], 0.99, places=5)
         self.assertLess(done["farthest"], 1e-6)                          # every sentence scaled by the same factor
 
     def test_a_sentence_with_nothing_to_pronounce_is_skipped(self):
-        # Four sentences: "XD. こんにちは." and "XD." have nothing to pronounce, "One." and "Three." are read.
-        self.assertEqual(self.mixed["order"], ["made One.", "sent One.", "made Three.", "sent Three.", "done"])
-        self.assertEqual([(s["index"], s["total"]) for s in self.mixed["sentences"]], [(1, 4), (3, 4)])
-        self.assertEqual((self.mixed["last"]["type"], self.mixed["last"]["length"]), ("done", 800 + 1000))
+        # Five sentences: the three without Arabic letters (XD, こんにちは, XD) have nothing to say.
+        self.assertEqual(self.mixed["order"], ["made اثْنانِ.", "sent اثْنانِ.", "made ثَلاثَةٌ.", "sent ثَلاثَةٌ.", "done"])
+        self.assertEqual([(s["index"], s["total"]) for s in self.mixed["sentences"]], [(2, 5), (4, 5)])
+        self.assertEqual((self.mixed["last"]["type"], self.mixed["last"]["length"]),
+                         ("done", 400 + 100 * len("اثْنانِ.") + 400 + 100 * len("ثَلاثَةٌ.")))
 
     def test_a_text_with_nothing_to_pronounce_gets_a_plain_message_and_no_clip(self):
         for text, facts in self.unreadable.items():
             self.assertEqual(facts["order"], ["error"], text)            # no sentence, no empty clip
-            self.assertEqual(facts["last"], {"type": "error", "id": 7, "message": ENGLISH_ONLY, "plain": True}, text)
+            self.assertEqual(facts["last"], {"type": "error", "id": 7, "message": ARABIC_ONLY, "plain": True}, text)
+
+
+@unittest.skipUnless(shutil.which("node"), "needs node to run the demo's own code")
+class RulesTests(unittest.TestCase):
+    """The worker's sentence rules and its two shapes of config.max_tokens."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.facts = node(RULES, str(PUBLIC / "worker.js"))
+
+    def test_arabic_marks_split_sentences(self):
+        self.assertEqual(self.facts["split"], ["مَرْحَبًا،", "كَيْفَ حَالُكَ؟", "أَنَا بِخَيْرٍ!", "شُكْرًا.",
+                                               "وَالسلامُ عَلَيْكُمْ؛", "هَلْ أَتَيْتَ؟"])
+
+    def test_finished_keeps_arabic_marks_and_only_adds_a_stop_when_needed(self):
+        self.assertEqual(self.facts["finished"], ["كَيْفَ حَالُكَ؟", "مَرْحَبًا، بِالْعالَمِ!", "ذَهَبَ الطَّالِبُ.",
+                                                  "نَعَمْ؛", "   "])
+
+    def test_max_tokens_is_read_from_either_shape_with_a_fallback(self):
+        self.assertEqual(self.facts["flat"], ["واحد اثنان", "ثلاثة أربعة"])
+        self.assertEqual(self.facts["nested"], ["واحد اثنان", "ثلاثة أربعة"])
+        self.assertEqual(self.facts["fallback"], ["واحد اثنان ثلاثة أربعة"])
+        self.assertEqual(self.facts["null"], [])
 
 
 @unittest.skipUnless(shutil.which("node"), "needs node to run the demo's own code")
@@ -451,76 +484,88 @@ class PageTests(Times):
     def setUpClass(cls):
         cls.facts = node(PAGE, str(PUBLIC / "player.js"), str(PUBLIC / "index.html"))
 
-    def test_the_page_opens_with_the_m2_voice(self):
-        # F2 is still there and still the first button. M2 is the one chosen when the page opens, and its value is
-        # M2's place among the model's voices.
-        self.assertEqual(self.facts["voices"], [{"value": "0", "name": "F2", "checked": False},
-                                                {"value": "1", "name": "M2", "checked": True}])
-        self.assertEqual(Config().speakers, ("F2", "M2"))
-        self.assertEqual(self.facts["messages"]["asked"]["voice"], 1)    # what an untouched page asks the worker for
+    def test_the_page_opens_with_the_single_f2_voice(self):
+        self.assertEqual(self.facts["voices"], [{"value": "0", "name": "F2", "checked": True}])
+        self.assertEqual(self.facts["messages"]["asked"]["voice"], 0)   # the only voice is id 0
+
+    def test_the_examples_are_vocalized_arabic(self):
+        for label, text in self.facts["examples"]:
+            self.assertTrue(ARABIC.has_diacritics(text), label)
+            self.assertEqual(ARABIC.phonemize(text, diacritized=True).unknown, (), label)
 
     def test_a_text_it_cannot_read_gets_the_plain_message(self):
         messages = self.facts["messages"]
-        self.assertEqual(messages["asked"], {"type": "speak", "id": 1, "text": "Some text.", "voice": 1})
+        self.assertEqual(messages["asked"], {"type": "speak", "id": 1, "text": "مَرْحَبًا", "voice": 0})
         plain = messages["plain"]
-        self.assertEqual(plain["status"], ENGLISH_ONLY)                  # as it is: no "Something went wrong"
-        self.assertEqual((plain["button"], plain["disabled"], plain["plays"]), ("Speak", False, 0))
+        self.assertEqual(plain["status"], ARABIC_ONLY)                  # as it is: no "حدث خطأ"
+        self.assertEqual((plain["button"], plain["disabled"], plain["plays"]), ("انطق", False, 0))
         failure = messages["failure"]
-        self.assertEqual(failure["status"], "Something went wrong: the model broke")
-        self.assertEqual((failure["button"], failure["disabled"]), ("Speak", False))
+        self.assertEqual(failure["status"], "حدث خطأ: the model broke")
+        self.assertEqual((failure["button"], failure["disabled"]), ("انطق", False))
 
     def test_the_sentences_play_as_they_come_and_the_clip_waits_in_the_player(self):
         live = self.facts["live"]
         self.assertEqual(live["asked"], {"sampleRate": 24000})          # the sound runs at the model's rate
-        self.assertEqual((live["clicked"]["button"], live["clicked"]["disabled"]), ("Stop", False))
+        self.assertEqual((live["clicked"]["button"], live["clicked"]["disabled"]), ("إيقاف", False))
         self.assertTimes(live["speaking"]["starts"], [0.05, 1.05])
-        self.assertEqual(live["speaking"]["status"], "Speaking sentence 2 of 2")
+        self.assertEqual(live["speaking"]["status"], "جارٍ نطق الجملة 2 من 2")
         finished = live["finished"]
-        self.assertEqual((finished["status"], finished["shown"], finished["plays"]), ("Done.", True, 0))
-        self.assertEqual((finished["button"], finished["cut"]), ("Stop", [False, False]))      # still speaking
-        self.assertEqual((live["after"]["button"], live["after"]["disabled"]), ("Speak", False))
+        self.assertEqual((finished["status"], finished["shown"], finished["plays"]), ("تمّ.", True, 0))
+        self.assertEqual((finished["button"], finished["cut"]), ("إيقاف", [False, False]))   # still speaking
+        self.assertEqual((live["after"]["button"], live["after"]["disabled"]), ("انطق", False))
 
     def test_without_web_audio_the_clip_plays_when_it_is_ready(self):
         old = self.facts["old"]
-        self.assertEqual((old["speaking"]["starts"], old["speaking"]["button"], old["speaking"]["disabled"]), ([], "Speak", True))
+        self.assertEqual((old["speaking"]["starts"], old["speaking"]["button"], old["speaking"]["disabled"]), ([], "انطق", True))
         finished = old["finished"]
-        self.assertEqual((finished["status"], finished["plays"], finished["button"], finished["disabled"]), ("Done.", 1, "Speak", False))
+        self.assertEqual((finished["status"], finished["plays"], finished["button"], finished["disabled"]), ("تمّ.", 1, "انطق", False))
 
     def test_stop_and_the_player_silence_the_sentences(self):
         stop = self.facts["stop"]
         stopped = stop["stopped"]
-        self.assertEqual((stopped["button"], stopped["disabled"], stopped["cut"]), ("Speak", True, [True]))    # the clip is still being made
+        self.assertEqual((stopped["button"], stopped["disabled"], stopped["cut"]), ("انطق", True, [True]))    # the clip is still being made
         finished = stop["finished"]
         self.assertEqual(len(finished["starts"]), 1)                     # the later sentences stayed silent
-        self.assertEqual((finished["status"], finished["plays"], finished["button"], finished["disabled"]), ("Done.", 0, "Speak", False))
+        self.assertEqual((finished["status"], finished["plays"], finished["button"], finished["disabled"]), ("تمّ.", 0, "انطق", False))
         again = stop["again"]
-        self.assertEqual((again["button"], again["pauses"], again["cut"]), ("Stop", 2, [True, False]))         # each request pauses the player
+        self.assertEqual((again["button"], again["pauses"], again["cut"]), ("إيقاف", 2, [True, False]))      # each request pauses the player
         player = stop["player"]
-        self.assertEqual((player["plays"], player["cut"], player["button"]), (1, [True, True], "Speak"))
+        self.assertEqual((player["plays"], player["cut"], player["button"]), (1, [True, True], "انطق"))
         self.assertEqual(stop["requests"], 2)
 
 
 class PhonemizerInTheBrowserTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.phonemize_json = staticmethod(glue(ARABIC))
+
+    def test_the_shipped_copy_is_a_verbatim_copy_of_the_real_front_end(self):
+        shipped = (PUBLIC / "assets" / "arabic_text.py").read_text(encoding="utf-8")
+        source = (ROOT / "src" / "tiny_voca" / "arabic_text.py").read_text(encoding="utf-8")
+        self.assertEqual(shipped, source)
+
+    def test_no_external_phonemizer_is_referenced(self):
+        worker = (PUBLIC / "worker.js").read_text(encoding="utf-8").lower()
+        self.assertNotIn("dizione", worker)
+        self.assertNotIn("espeak", worker)
+        self.assertNotIn("numpy", worker)
+
+    def test_output_shape_ids_stress_and_symbols(self):
+        for text in ("مَرْحَبًا بِالْعالَمِ", "هَلْ ذَهَبَتْ إِلَى الْجامِعَةِ الْيَوْمَ؟", "عَدَدُ الْكُتُبِ خَمْسَةٌ."):
+            expected = ARABIC.phonemize(text, diacritized=True)
+            result = json.loads(self.phonemize_json(text))
+            self.assertEqual(set(result), {"ids", "stress", "text"})
+            self.assertEqual(result["ids"], list(expected.ids))
+            self.assertEqual(result["stress"], list(expected.stress))     # the exact stress feature, untouched
+            self.assertEqual(result["text"], " ".join(expected.symbols))
+            self.assertEqual(len(result["ids"]), len(result["stress"]))
+            self.assertTrue(any(result["stress"]))                        # word stress is present
+            self.assertEqual(result["ids"][0], ARABIC.SYMBOL_TO_ID["<bos>"])
+            self.assertEqual(result["ids"][-1], ARABIC.SYMBOL_TO_ID["<eos>"])
+
     def test_nothing_to_pronounce_is_null_and_not_an_error(self):
-        phonemize_json = glue(stand_in())
-        for text in ("XD", "こんにちは、世界。", "!!! ...", "XD :) XD"):
-            self.assertEqual(phonemize_json(text), "null", text)
-        self.assertEqual(json.loads(phonemize_json("Hello there. XD")),
-                         {"ids": [1, 5, 5, 2], "stress": [0, 0, 0, 0], "text": "<bos> Hello there <eos>"})
-
-    def test_another_failure_is_still_a_failure(self):
-        with self.assertRaisesRegex(ValueError, "the dictionary is broken"):
-            glue(stand_in())("boom goes the text")
-
-    @unittest.skipUnless(HAVE_DIZIONE, "needs dizione and its built data (DIZIONE_DATA)")
-    def test_with_dizione_itself(self):
-        phonemize_json = glue(dizione)
-        for text in ("XD", ":D", "こんにちは、世界。", "你好，世界！", "안녕하세요", "مرحبا بالعالم", "Привет мир.", "!!! ...", "\U0001F642"):
-            self.assertEqual(phonemize_json(text), "null", text)
-        expected = dizione.phonemize("Hello there.")
-        self.assertEqual(json.loads(phonemize_json("Hello there.")),
-                         {"ids": list(expected.ids), "stress": list(expected.stress), "text": str(expected)})
-        self.assertNotEqual(phonemize_json("Hello there こんにちは my friend."), "null")
+        for text in ("", "   ", "!!!", "،؛؟", "XD"):
+            self.assertEqual(self.phonemize_json(text), "null", text)
 
 
 if __name__ == "__main__":

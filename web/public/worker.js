@@ -1,12 +1,11 @@
-// Runs the phonemizer (dizione, through Pyodide) and the model (ONNX Runtime Web)
-// off the main thread. Messages in: {type: "load"} and {type: "speak", id, text,
-// voice, speed}. Messages out: status, ready, sentence (with its audio, as soon as
-// it is made), done (with the whole clip), error (plain: true when the message is
-// meant for the reader as it is).
+// Runs the Arabic phonemizer (the rules front end, through Pyodide) and the model (ONNX Runtime Web)
+// off the main thread. Messages in: {type: "load"} and {type: "speak", id, text, voice, speed}.
+// Messages out: status, ready, sentence (with its audio, as soon as it is made), done (with the whole clip),
+// error (plain: true when the message is meant for the reader as it is). The G2P is the pure-Python module
+// shipped verbatim as assets/arabic_text.py: no dictionary and no external program.
 
 const PYODIDE = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
 const ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
-const DATA = ["lexicon.tsv", "align.json", "g2p.json", "g2p.npz", "homographs.json"];
 
 importScripts(PYODIDE + "pyodide.js", ORT + "ort.wasm.min.js");
 
@@ -15,7 +14,7 @@ let pyodide, phonemize, session, config;
 const status = (text, progress) => postMessage({ type: "status", text, progress });
 
 // Bump when the files under assets/ change, so browsers fetch them again.
-const VERSION = "2";
+const VERSION = "3";
 
 // Downloaded files are kept in the browser's cache storage: a second visit starts without the network.
 async function download(url, label) {
@@ -55,32 +54,26 @@ async function fetchBytes(url, label) {
 async function loadPhonemizer() {
   status("Loading the phonemizer");
   pyodide = await loadPyodide({ indexURL: PYODIDE });
-  await pyodide.loadPackage("numpy");
-  const [source, ...files] = await Promise.all([
-    download("assets/dizione.zip", "Loading the phonemizer"),
-    ...DATA.map((name) => download("assets/phonemizer/" + name, "Loading the dictionary")),
-  ]);
+  // rules is dependency-free: no extra packages, no lexicon, no archive to unpack.
+  const source = await download("assets/arabic_text.py", "Loading the phonemizer");
   status("Starting the phonemizer");
-  pyodide.FS.mkdirTree("/dizione-data");
-  DATA.forEach((name, index) => pyodide.FS.writeFile("/dizione-data/" + name, files[index]));
-  pyodide.unpackArchive(source.buffer, "zip", { extractDir: "/dizione-src" });
+  pyodide.FS.mkdirTree("/arabic-frontend");
+  pyodide.FS.writeFile("/arabic-frontend/arabic_text.py", source);
   pyodide.runPython(`
-import json, os, sys
-os.environ["DIZIONE_DATA"] = "/dizione-data"
-sys.path.insert(0, "/dizione-src")
-import dizione
+import json, sys
+sys.path.insert(0, "/arabic-frontend")
+import arabic_text
 
 def phonemize_json(text):
     try:
-        result = dizione.phonemize(text)
+        result = arabic_text.phonemize(text, diacritized=True)
     except ValueError:
-        # Nothing to pronounce (another script, a face, signs only) is no failure: "null", and the sentence is skipped.
-        if any(word for mark, words in dizione.pieces(text) if not mark for word in words):
-            raise
+        # No word, no number or an empty string: nothing to say, the sentence is skipped.
         return "null"
-    return json.dumps({"ids": list(result.ids), "stress": list(result.stress), "text": str(result)})
+    return json.dumps({"ids": list(result.ids), "stress": list(result.stress),
+                       "text": " ".join(result.symbols)})
 
-phonemize_json("Warm up.")
+phonemize_json("مَرْحَبًا بِالْعالَمِ")
 `);
   phonemize = pyodide.globals.get("phonemize_json");
 }
@@ -97,8 +90,15 @@ async function loadModel() {
 const ABBREVIATIONS = /(?:\b(?:mr|mrs|ms|dr|prof|sr|jr|st|vs|etc|no|inc|ltd|co|e\.g|i\.e|a\.m|p\.m)|\b[A-Z])\.$/i;
 
 // Sentences, without breaking after titles, initials or inside numbers.
-// tiny_voca.infer.sentences in the Python package splits the same way; keep the two alike.
+// The English path is the one tiny_voca.infer.sentences uses and must stay identical: the two are tested together.
+// The Arabic path splits after Arabic clause/sentence marks (، ؛ ؟ . ! …) and needs no following capital letter
+// or abbreviation table, since the Arabic front end expands its own abbreviations.
 function sentences(text) {
+  if (/[\u0600-\u06FF]/u.test(text)) {
+    return text.replace(/\s+/g, " ").trim()
+      .split(/(?<=[،؛؟.!…]["'”’)\]»]?)\s+(?=\S)/u)
+      .filter((part) => /[\p{L}\p{N}]/u.test(part));
+  }
   const parts = [];
   let current = "";
   for (const piece of text.replace(/\s+/g, " ").trim().split(/(?<=[.!?…]["')\]]?)\s+(?=["'(\[]?[A-Z0-9])/)) {
@@ -111,8 +111,15 @@ function sentences(text) {
 
 // A full stop is added when the text ends without a mark: before a final mark the voice lengthens the last
 // syllable and lets the sound fall, without one the audio breaks off. A face or another sign after the last word
-// is no mark ("see you :)"), a comma or a colon is one. tiny_voca.infer.finished does the same; keep the two alike.
+// is no mark ("see you :)"), a comma or a colon is one. tiny_voca.infer.finished does the same for English;
+// keep that path byte-for-byte. Arabic marks (، ؛ ؟ . ! …) count as marks too, also after a closing quote.
 function finished(text) {
+  if (/[\u0600-\u06FF]/u.test(text)) {
+    const arabicBody = text.replace(/\s+$/, "");
+    if (!arabicBody) return text;
+    const arabicLast = arabicBody.split(/\s+/).pop().replace(/["'”’)\]»]+$/, "").slice(-1);
+    return /[.،؛؟!…,;:]/.test(arabicLast) ? text : arabicBody + ".";
+  }
   const body = text.replace(/\s+$/, "");
   if (!body) return text;
   const last = body.split(/\s+/).pop();
@@ -120,13 +127,14 @@ function finished(text) {
   return marked ? text : body + ".";
 }
 
-// One utterance holds at most max_tokens phonemes; longer sentences are cut at commas, then by words.
-// A sentence with nothing to pronounce gives no utterance.
+// One utterance holds at most max_tokens phonemes; longer sentences are cut at clause marks, then by words.
+// Export writes max_tokens at the top level; older configs keep it under "model".
 function fit(sentence) {
   const result = JSON.parse(phonemize(sentence));
   if (!result) return [];
-  if (result.ids.length <= config.model.max_tokens - 12) return [result];
-  const pieces = sentence.split(/(?<=[,;:—])\s+/);
+  const maxTokens = config.max_tokens ?? config.model?.max_tokens ?? 512;
+  if (result.ids.length <= maxTokens - 12) return [result];
+  const pieces = sentence.split(/(?<=[،؛؟.!—])\s+/u);
   if (pieces.length > 1) return pieces.flatMap(fit);
   const words = sentence.split(" ");
   if (words.length < 2) return [];
@@ -155,7 +163,7 @@ function limitPeak(samples) {
 }
 
 // Shown when no sentence of a text could be read. tiny_voca.infer.speak_text says the same.
-const ENGLISH_ONLY = "tiny-voca only reads English for now.";
+const ARABIC_ONLY = "يقرأ tiny-voca النص العربي المشكّل فقط.";
 
 async function speak({ id, text, voice, speed }) {
   const started = performance.now();
@@ -180,7 +188,7 @@ async function speak({ id, text, voice, speed }) {
     }
   }
   if (!chunks.length) {
-    postMessage({ type: "error", id, message: ENGLISH_ONLY, plain: true });
+    postMessage({ type: "error", id, message: ARABIC_ONLY, plain: true });
     return;
   }
   const length = chunks.reduce((sum, chunk) => sum + chunk.length, 0);

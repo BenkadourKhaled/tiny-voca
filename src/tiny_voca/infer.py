@@ -5,7 +5,7 @@ import re
 import torch
 from .config import CHECKPOINT_FORMAT, Config
 from .model import TinyVoca, UtteranceTooLong
-from .text import FRONTEND_VARIABLE, FRONTENDS, NothingToPronounce, frontend_fingerprint, phonemize, set_frontend
+from .text import FRONTEND_VARIABLE, FRONTENDS, NothingToPronounce, frontend_fingerprint, language, phonemize, set_frontend
 
 # The loudest sample of the audio that ``speak_text`` and the command return.
 PEAK = 0.99
@@ -18,6 +18,15 @@ _NOT_AN_END = re.compile(r"(?:\b(?:mr|mrs|ms|dr|prof|sr|jr|st|vs|etc|no|inc|ltd|
 _CLAUSE_END = re.compile(r"(?<=[,;:—])\s+")
 _TEXT_END = re.compile("[\\s" + chr(0xFEFF) + "]+$")
 _CLOSING = "\"'”’)]»"                               # these may stand after the last mark: She said "go!"
+# Arabic MSA uses the same full stop and exclamation mark, plus ء؟؛،. No
+# abbreviation rule and no following capital letter are needed (or reliable).
+_AR_SENTENCE_END = re.compile(r"(?<=[.!؟…])\s+")
+_AR_TEXT_END = re.compile("[\\s" + chr(0xFEFF) + "]+$")
+_AR_MARKED = frozenset(".!؟…,؛:")
+
+
+def _nothing_read_message():
+    return "tiny-voca only reads Arabic when the text is vocalized" if language() == "ar" else ENGLISH_ONLY
 
 
 def load_model(path, device="cpu", check_frontend=True):
@@ -52,6 +61,10 @@ def sentences(text):
     """The sentences of ``text``, without a break after a title or an initial
     or inside a number. The browser demo splits the same way
     (``web/public/worker.js``); keep the two alike."""
+    if language() == "ar":
+        clean = _SPACE.sub(" ", text).strip()
+        return [part.strip() for part in _AR_SENTENCE_END.split(clean)
+                if any(char.isalnum() for char in part)]
     parts, current = [], ""
     for piece in _SENTENCE_END.split(_SPACE.sub(" ", text).strip()):
         current = f"{current} {piece}" if current else piece
@@ -69,6 +82,12 @@ def finished(text):
     without one the audio breaks off. A face or another sign after the last
     word is no mark ("see you :)"), a comma or a colon is one. The browser
     demo does the same (``web/public/worker.js``); keep the two alike."""
+    if language() == "ar":
+        body = _AR_TEXT_END.sub("", text)
+        if not body:
+            return text
+        last = _SPACE.split(body)[-1].rstrip(_CLOSING)[-1:]
+        return text if last in _AR_MARKED else body + "."
     body = _TEXT_END.sub("", text)
     if not body:
         return text
@@ -163,7 +182,7 @@ def speak_text(model, text, voice, speed=1.0, pitch_shift=0.0, seed=0, pitch_ran
     for sentence in sentences(finished(text)):
         read(sentence)
     if not waves:
-        raise NothingToPronounce(f"nothing in the text could be read: {ENGLISH_ONLY}")
+        raise NothingToPronounce(f"nothing in the text could be read: {_nothing_read_message()}")
     wave = torch.cat(waves)
     return (wave if peak is None else limit_peak(wave, peak)), spoken
 
@@ -174,7 +193,7 @@ def main():
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument("--text", help="Text of any length; it is read sentence by sentence")
     source.add_argument("--text-file", type=Path, help="Read the text from a file (UTF-8)")
-    parser.add_argument("--voice", choices=("F2", "M2"), default="F2")
+    parser.add_argument("--voice", default="F2", help="Voice name from the checkpoint; a single-speaker Arabic model has only F2")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--speed", type=float, default=1)
     parser.add_argument("--pitch-shift", type=float, default=0, help="Added to log F0 (0.058 is about one semitone)")
@@ -190,11 +209,13 @@ def main():
     elif FRONTEND_VARIABLE not in os.environ:
         match_frontend(args.checkpoint)
     model = load_model(args.checkpoint, args.device, check_frontend=not args.allow_frontend_mismatch)
+    if args.voice not in model.config.speakers:
+        parser.error(f"unknown voice {args.voice!r}; this checkpoint has {list(model.config.speakers)}")
     text = args.text if args.text is not None else args.text_file.read_text(encoding="utf-8")
     try:
         raw, spoken = speak_text(model, text, args.voice, args.speed, args.pitch_shift, pitch_range=args.pitch_range, peak=None)
     except NothingToPronounce:
-        parser.exit(1, f"{ENGLISH_ONLY}. Nothing in the text could be read, so no file was written.\n")
+        parser.exit(1, f"{_nothing_read_message()}. Nothing in the text could be read, so no file was written.\n")
     wave = limit_peak(raw)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     # Float samples, never above PEAK: a later conversion to 16-bit does not clip.

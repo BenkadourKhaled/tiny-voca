@@ -20,7 +20,7 @@ import torch
 
 from tiny_voca.export import Exportable
 from tiny_voca.infer import load_model, match_frontend
-from tiny_voca.text import phonemize
+from tiny_voca.text import language, phonemize
 
 SENTENCES = (
     "Hello! This is tiny voca.",
@@ -30,6 +30,23 @@ SENTENCES = (
     "After a long and difficult journey across the mountains, the travellers finally reached the small village, "
     "where they were welcomed with warm food, a place to sleep and many questions about the road behind them.",
 )
+# Fully vocalized MSA: the Arabic rules front end has no reliable tashkeel.
+ARABIC_SENTENCES = (
+    "مَرْحَبًا بِالْعالَمِ!",
+    "الطَّقْسُ جَمِيلٌ الْيَوْمَ، وَأَنا أَشْعُرُ بِالاسْتِرْخاءِ.",
+    "هَلْ دَفَعْتَ حَقًّا هٰذا الْمَبْلَغَ؟",
+    "يَبِيعُ البائِعُ أَصْدافَ الْبَحْرِ عِنْدَ شاطِئِ الْبَحْرِ.",
+    "بَعْدَ رِحْلَةٍ طَوِيلَةٍ وَصَعْبَةٍ عَبْرَ الْجِبالِ، وَصَلَ الْمُسافِرُونَ أخيرًا إِلى الْقَرْيَةِ الصَّغيرَةِ، "
+    "حَيْثُ رَحَّبَ بِهِمْ بِطَعامٍ دافِئٍ وَمَكانٍ لِلنَّوْمِ وَكَثيرٍ مِنَ الأسْئِلَةِ عَنِ الطَّريقِ الَّذي سَلَكُوهُ.",
+)
+
+
+def sentences():
+    return ARABIC_SENTENCES if language() == "ar" else SENTENCES
+
+
+def phonemize_text(text):
+    return phonemize(text, diacritized=True) if language() == "ar" else phonemize(text)
 
 
 def session(path, threads):
@@ -60,8 +77,8 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
     rate, hop = model.config.sample_rate, model.config.hop
     rows = []
-    for number, text in enumerate(SENTENCES):
-        phones = phonemize(text)
+    for number, text in enumerate(sentences()):
+        phones = phonemize_text(text)
         for voice, name in enumerate(model.config.speakers):
             tokens, stress = torch.tensor([phones.ids]), torch.tensor([phones.stress])
             reference, lengths, details = model.synthesize(tokens, stress, torch.tensor([len(phones)]), torch.tensor([voice]))
@@ -86,8 +103,8 @@ def main():
         print(json.dumps(row))
     if args.release:
         release = session(args.release, args.threads)
-        text = SENTENCES[1]
-        phones = phonemize(text)
+        text = sentences()[1]
+        phones = phonemize_text(text)
         for voice, name in enumerate(model.config.speakers):
             feed = feeds(phones, voice)
             for _ in range(5):
@@ -109,8 +126,8 @@ def main():
                               "onnx_seconds": round(statistics.median(times), 4), "onnx_rtfx": round(seconds / statistics.median(times), 1),
                               "torch_seconds": round(statistics.median(torch_times), 4),
                               "torch_rtfx": round(seconds / statistics.median(torch_times), 1)}))
-            for number, sentence in enumerate(SENTENCES):
-                audio = release.run(None, feeds(phonemize(sentence), voice))[0]
+            for number, sentence in enumerate(sentences()):
+                audio = release.run(None, feeds(phonemize_text(sentence), voice))[0]
                 sf.write(args.output / f"s{number}-{name}-onnx.wav", audio[0], rate)
                 print(json.dumps({"release_sentence": number, "voice": name, "seconds": round(audio.shape[1] / rate, 2),
                                   "peak": round(float(np.abs(audio).max()), 3), "finite": bool(np.isfinite(audio).all())}))

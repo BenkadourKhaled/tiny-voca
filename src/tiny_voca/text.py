@@ -44,8 +44,8 @@ SEPARATOR = "_"
 FRONTENDS = ("espeak", "own")
 FRONTEND_VARIABLE = "TINY_VOCA_FRONTEND"
 _frontend = os.environ.get(FRONTEND_VARIABLE, "espeak")
-if _frontend not in FRONTENDS:
-    raise ValueError(f"{FRONTEND_VARIABLE} must be one of {FRONTENDS}, not {_frontend!r}")
+# Validation happens after language selection: Arabic accepts "rules", which is
+# not in the English FRONTENDS tuple below. Checking here would reject it.
 
 PAD, BOS, EOS, SP, UNK = "<pad>", "<bos>", "<eos>", "<sp>", "<unk>"
 SPECIALS = (PAD, BOS, EOS, SP, UNK)
@@ -83,6 +83,52 @@ _PUNCTUATION_CHARS = frozenset(PUNCTUATION)
 ABBREVIATIONS = {"mr", "mrs", "ms", "dr", "prof", "st", "jr", "sr", "vs", "etc"}
 _LANGUAGE_TAG = re.compile(r"\((?:_?[a-z0-9]_?){2,3}(?:-(?:_?[a-z0-9]_?)+)*\)")
 
+# ---------------------------------------------------------------------------
+# Language selection. Arabic has its own inventory and G2P (arabic_text.py),
+# but the rest of tiny-voca reads SYMBOLS/PHONES from this module. Selecting
+# ``TINY_VOCA_LANGUAGE=ar`` therefore switches the whole pipeline without
+# touching config, training, alignment, inference or export. English stays the
+# default and keeps the exact behaviour of front-end version 3/4.
+# ---------------------------------------------------------------------------
+LANGUAGE_VARIABLE = "TINY_VOCA_LANGUAGE"
+LANGUAGES = ("en", "ar")
+_language = os.environ.get(LANGUAGE_VARIABLE, "en")
+if _language not in LANGUAGES:
+    raise ValueError(f"{LANGUAGE_VARIABLE} must be one of {LANGUAGES}, not {_language!r}")
+
+if _language == "ar":
+    from . import arabic_text as _arabic
+
+    FRONTEND_VERSION = _arabic.FRONTEND_VERSION
+    ESPEAK_VOICE = "ar"
+    FRONTENDS = _arabic.FRONTENDS
+    _frontend = os.environ.get(FRONTEND_VARIABLE, _arabic.DEFAULT_FRONTEND)
+    if _frontend not in FRONTENDS:
+        raise ValueError(f"{FRONTEND_VARIABLE} must be one of {FRONTENDS}, not {_frontend!r}")
+    SPECIALS = tuple(_arabic.SPECIALS)
+    PUNCTUATION = tuple(_arabic.PUNCTUATION)
+    CONSONANTS = tuple(_arabic.CONSONANTS)
+    VOWELS = tuple(_arabic.VOWELS)
+    PHONES = tuple(_arabic.PHONES)
+    SYMBOLS = tuple(_arabic.SYMBOLS)
+    SYMBOL_TO_ID = dict(_arabic.SYMBOL_TO_ID)
+    PHONE_SET = frozenset(_arabic.PHONE_SET)
+    PHONE_IDS = frozenset(_arabic.PHONE_IDS)
+    VOWEL_SET = frozenset(_arabic.VOWEL_SET)
+    VOICELESS = frozenset(_arabic.VOICELESS)
+    STRESS_MARKS = dict(_arabic.STRESS_MARKS)
+    FALLBACK = {}
+    _PUNCTUATION_CHARS = frozenset(PUNCTUATION)
+    ABBREVIATIONS = dict(_arabic.ABBREVIATIONS)
+
+if _language == "en" and _frontend not in FRONTENDS:
+    raise ValueError(f"{FRONTEND_VARIABLE} must be one of {FRONTENDS}, not {_frontend!r}")
+
+
+def language():
+    """``"en"`` or ``"ar"``, selected by TINY_VOCA_LANGUAGE."""
+    return _language
+
 
 class NothingToPronounce(ValueError):
     """The text has no word, number or letter to say: only marks, emoji and the like."""
@@ -100,14 +146,20 @@ class Phonemized:
 
 
 def frontend():
-    """Name of the program that produces the phonemes: ``"espeak"`` or ``"own"``."""
-    return _frontend
+    """Name of the program that produces the phonemes.
+
+    English: ``"espeak"`` or ``"own"``. Arabic: ``"rules"`` or ``"espeak"``.
+    """
+    return _arabic.frontend() if _language == "ar" else _frontend
 
 
 def set_frontend(name):
     """Select the phonemizer for this process. Tokens of the two front ends
     must not be mixed: annotations and checkpoints record which one made them."""
     global _frontend
+    if _language == "ar":
+        _arabic.set_frontend(name)
+        return
     if name not in FRONTENDS:
         raise ValueError(f"front end must be one of {FRONTENDS}, not {name!r}")
     _frontend = name
@@ -124,6 +176,8 @@ def _dizione():
 
 
 def frontend_identity():
+    if _language == "ar":
+        return {**_arabic.frontend_identity(), "language": "ar"}
     if _frontend == "own":
         phonemizer = _dizione()
         return {"frontend_version": phonemizer.VERSION, "phonemizer": "dizione", "symbols": list(SYMBOLS)}
@@ -134,6 +188,10 @@ def frontend_identity():
 def frontend_runtime():
     """What an annotation run records about the exact program behind its
     tokens: the eSpeak version, or the fingerprint of the phonemizer build."""
+    if _language == "ar":
+        if _arabic.frontend() == "espeak":
+            return {"espeak_version": espeak_version()}
+        return {"arabic_frontend": _arabic.frontend_fingerprint()}
     if _frontend == "own":
         return {"phonemizer": _dizione().identity()["fingerprint"]}
     return {"espeak_version": espeak_version()}
@@ -144,6 +202,8 @@ def frontend_fingerprint():
 
 
 def normalize_text(text):
+    if _language == "ar":
+        return _arabic.normalize(text)
     text = unicodedata.normalize("NFKC", text).translate(_QUOTES)
     text = re.sub(r"\.{3,}", "…", text)
     text = re.sub(r"-{2,}|\s-\s", "—", text)
@@ -266,9 +326,20 @@ def tokenize(pieces):
     return Phonemized(tuple(symbols), tuple(SYMBOL_TO_ID[s] for s in symbols), tuple(stress), tuple(unknown))
 
 
-def phonemize(text):
+def phonemize(text, diacritized=False):
+    """Text -> Phonemized. ``diacritized`` only applies to Arabic.
+
+    Arabic raw text must first pass through ``scripts/diacritize.py`` (CAMeL or
+    Shakkala) and then be passed here with ``diacritized=True``; see
+    ``docs/arabic-frontend.md``.
+    """
     if not isinstance(text, str) or not text.strip():
         raise ValueError("text must not be empty")
+    if _language == "ar":
+        try:
+            return _arabic.phonemize(text, diacritized=diacritized)
+        except _arabic.NothingToPronounce as error:
+            raise NothingToPronounce(str(error)) from error
     if _frontend == "own":
         return tokenize(_dizione().pieces(text))
     pieces = []

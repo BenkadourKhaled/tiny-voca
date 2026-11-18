@@ -1,31 +1,33 @@
 <!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>tiny-voca</title>
-<meta name="description" content="tiny-voca is a 4.5M-parameter English text-to-speech model. This page runs it in your browser.">
+<title>tiny-voca — العربية</title>
+<meta name="description" content="tiny-voca هو نموذج تحويل نص إلى كلام هجين صغير يتعمل بالعربية الفصحى داخل متصفحك.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23171512'/%3E%3Cpath d='M8 13v6M12 9v14M16 12v8M20 7v18M24 13v6' stroke='%23f4efe6' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
   :root {
     --paper: #f6f2ea; --ink: #1b1915; --muted: #6d665b; --line: #d9d2c4; --panel: #fffdf8;
     --accent: #b4421f; --accent-ink: #fff; --ok: #2f6b3c;
     --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    --sans: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-    --ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --sans: "Noto Naskh Arabic", "Amiri", "Traditional Arabic", "Segoe UI", Tahoma, serif;
+    --ui: "Segoe UI", Tahoma, system-ui, -apple-system, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root { --paper: #151412; --ink: #ece6da; --muted: #9a9284; --line: #35312a; --panel: #1d1b18; --accent: #e0703f; --accent-ink: #151412; --ok: #7fbf8c; }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.55 var(--ui); }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.7 var(--ui); }
   main { max-width: 760px; margin: 0 auto; padding: 56px 20px 72px; }
-  header h1 { font: 600 44px/1.05 var(--sans); letter-spacing: -0.01em; margin: 0 0 14px; }
-  header p { margin: 0; color: var(--muted); max-width: 56ch; }
+  header h1 { font: 600 40px/1.2 var(--sans); margin: 0 0 14px; }
+  header p { margin: 0; color: var(--muted); max-width: 60ch; }
   header p strong { color: var(--ink); font-weight: 600; }
-  .panel { margin-top: 36px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .note { margin-top: 14px; padding: 10px 14px; border-right: 3px solid var(--accent); background: var(--panel);
+          border-radius: 6px; font-size: 14px; color: var(--muted); max-width: 62ch; }
+  .panel { margin-top: 32px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
   textarea { width: 100%; min-height: 150px; resize: vertical; border: 0; outline: 0; background: transparent; color: inherit;
-             font: 20px/1.5 var(--sans); padding: 4px; }
+             font: 22px/2 var(--sans); padding: 4px; text-align: right; }
   .examples { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 2px; }
   .examples button { font: 13px var(--ui); color: var(--muted); background: transparent; border: 1px solid var(--line);
                      border-radius: 999px; padding: 5px 11px; cursor: pointer; }
@@ -40,7 +42,7 @@
   .speed { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
   .speed input { width: 130px; accent-color: var(--accent); }
   .speed output { font: 13px var(--mono); color: var(--ink); min-width: 4ch; }
-  #speak { margin-left: auto; min-width: 6em; font: 600 16px var(--ui); color: var(--accent-ink); background: var(--accent); border: 0;
+  #speak { margin-inline-start: auto; min-width: 6em; font: 600 16px var(--ui); color: var(--accent-ink); background: var(--accent); border: 0;
            border-radius: 10px; padding: 11px 22px; cursor: pointer; }
   #speak:disabled { opacity: 0.45; cursor: default; }
   #speak:focus-visible, textarea:focus-visible, .examples button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -54,20 +56,20 @@
   dl { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0 0; }
   dl div { border-top: 1px solid var(--line); padding-top: 8px; }
   dt { font-size: 12px; color: var(--muted); }
-  dd { margin: 2px 0 0; font: 15px var(--mono); }
+  dd { margin: 2px 0 0; font: 15px var(--mono); direction: ltr; text-align: right; }
   details { margin-top: 16px; font-size: 14px; color: var(--muted); }
-  details pre { white-space: pre-wrap; word-break: break-word; font: 13px/1.6 var(--mono); color: var(--ink); margin: 8px 0 0; }
+  details pre { white-space: pre-wrap; word-break: break-word; font: 13px/1.6 var(--mono); color: var(--ink); margin: 8px 0 0; direction: ltr; text-align: right; }
   .facts { margin-top: 44px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--line); }
   .facts div { padding: 16px 12px 16px 0; border-bottom: 1px solid var(--line); }
   .facts b { display: block; font: 600 22px var(--sans); }
   .facts span { font-size: 13px; color: var(--muted); }
   footer { margin-top: 36px; font-size: 14px; color: var(--muted); }
-  footer a { color: var(--ink); text-underline-offset: 3px; margin-right: 16px; }
+  footer a { color: var(--ink); text-underline-offset: 3px; margin-inline-end: 16px; }
   footer p { margin: 14px 0 0; max-width: 62ch; }
   @media (max-width: 560px) {
-    header h1 { font-size: 34px; } main { padding-top: 36px; }
+    header h1 { font-size: 32px; } main { padding-top: 36px; }
     dl { grid-template-columns: repeat(2, 1fr); } .facts { grid-template-columns: repeat(2, 1fr); }
-    #speak { margin-left: 0; width: 100%; }
+    #speak { margin-inline-start: 0; width: 100%; }
   }
 </style>
 </head>
@@ -75,64 +77,63 @@
 <main>
   <header>
     <h1>tiny-voca</h1>
-    <p>A <strong>4.5M-parameter</strong> English text-to-speech model with two voices, trained from scratch.
-       This page runs it in your browser: nothing you type leaves your device.</p>
+    <p>نموذج <strong>صغير لتحويل النص إلى كلام</strong> بالعربية الفصحى، يعمل بالكامل داخل متصفحك.
+       لا يغادر النص الذي تكتبه جهازك.</p>
+    <p class="note">يجب أن يكون النص <strong>مشكّلاً بالكامل</strong> (بالفتح والضم والكسر والسكون). لا يتضمن هذا العرض
+       تشكيلاً تلقائياً؛ ابدأ بأحد الأمثلة أدناه وعدّله.</p>
   </header>
 
   <section class="panel">
-    <textarea id="text" spellcheck="false" aria-label="Text to speak">Hello! This is tiny voca, a small text to speech model running entirely in your browser.</textarea>
+    <textarea id="text" dir="rtl" spellcheck="false" aria-label="النص المراد نطقه">مَرْحَبًا بِالْعالَمِ! هَذَا نِمُوذَجٌ صَغِيرٌ لِنُطْقٍ عَرَبِيٍّ فِي الْمُتَصَفِّحِ.</textarea>
     <div class="examples" id="examples"></div>
     <div class="controls">
-      <div class="voices" role="radiogroup" aria-label="Voice">
-        <label><input type="radio" name="voice" value="0"><span>F2</span></label>
-        <label><input type="radio" name="voice" value="1" checked><span>M2</span></label>
+      <div class="voices" role="radiogroup" aria-label="الصوت">
+        <label><input type="radio" name="voice" value="0" checked><span>F2</span></label>
       </div>
-      <label class="speed">Speed <input id="speed" type="range" min="0.7" max="1.4" step="0.05" value="1"><output id="speed-value">1.00</output></label>
-      <button id="speak" disabled>Speak</button>
+      <label class="speed">السرعة <input id="speed" type="range" min="0.7" max="1.4" step="0.05" value="1"><output id="speed-value">1.00</output></label>
+      <button id="speak" disabled>انطق</button>
     </div>
   </section>
 
-  <div class="status" id="status" role="status">Loading…</div>
+  <div class="status" id="status" role="status">جارٍ التحميل…</div>
   <div class="bar" id="bar"><i></i></div>
 
   <section class="result" id="result" hidden>
     <audio id="audio" controls></audio>
     <dl>
-      <div><dt>Audio</dt><dd id="m-audio">–</dd></div>
-      <div><dt>Time to generate</dt><dd id="m-time">–</dd></div>
-      <div><dt>Speed</dt><dd id="m-speed">–</dd></div>
-      <div><dt>Text to phonemes</dt><dd id="m-phonemes">–</dd></div>
+      <div><dt>مدة الصوت</dt><dd id="m-audio">–</dd></div>
+      <div><dt>زمن التوليد</dt><dd id="m-time">–</dd></div>
+      <div><dt>السرعة</dt><dd id="m-speed">–</dd></div>
+      <div><dt>زمن تحويل النص</dt><dd id="m-phonemes">–</dd></div>
     </dl>
-    <details><summary>Phonemes</summary><pre id="phonemes"></pre></details>
+    <details><summary>الصوايت</summary><pre id="phonemes"></pre></details>
   </section>
 
   <section class="facts">
-    <div><b>4,537,291</b><span>parameters, waveform generator included</span></div>
-    <div><b>21 MB</b><span>model file (ONNX, float32)</span></div>
-    <div><b>24 kHz</b><span>mono output</span></div>
-    <div><b>2 voices</b><span>F2 and M2, American English</span></div>
-    <div><b>17.6 hours</b><span>of synthetic training speech</span></div>
-    <div><b>Apache-2.0</b><span>code and weights</span></div>
+    <div><b>٥٤</b><span>رمزاً في المخزون الصوتي</span></div>
+    <div><b>صوت واحد</b><span>F2، لهجة دمشقية</span></div>
+    <div><b>24 kHz</b><span>أحادي القناة</span></div>
+    <div><b>بلا قاموس</b><span>قواعد G2P نقية في المتصفح</span></div>
+    <div><b>CC BY 4.0</b><span>بيانات التدريب (Halabi)</span></div>
+    <div><b>Apache-2.0</b><span>الشيفرة والأوزان</span></div>
   </section>
 
   <footer>
-    <a href="https://github.com/n4ze3m/tiny-voca">Code</a>
-    <a href="https://huggingface.co/n4ze3m/tiny-voca">Weights</a>
-    <a href="https://huggingface.co/datasets/n4ze3m/tiny-voca">Dataset</a>
-    <a href="https://github.com/n4ze3m/dizione">Phonemizer</a>
-    <p>The first visit downloads about 40 MB: the model, the pronunciation dictionary and a Python runtime for the
-       phonemizer. English only. Foreign names and unusual spellings are often mispronounced.</p>
+    <p>أول زيارة تنزّل النموذج ووحدة Python التي تحوّل النص إلى صوايت. النص يجب أن يكون مشكّلاً مسبقاً،
+       والنطق المُنتَج يحمل لهجة دمشقية لأنه تعلّم من corpus Halabi.</p>
+    <p>البيانات: Halabi, Nawar (2016). <em>Modern standard Arabic phonetics for speech synthesis</em>.
+       University of Southampton. CC BY 4.0.</p>
   </footer>
 </main>
 
 <script src="player.js"></script>
 <script>
 const EXAMPLES = [
-  ["Greeting", "Hello! This is tiny voca, a small text to speech model running entirely in your browser."],
-  ["Numbers", "The meeting moved to 3:30 pm on March 14th, so we have about 45 minutes left. It costs $12.99."],
-  ["Question", "Did you really think I would forget your birthday? Of course not!"],
-  ["Story", "She had never seen the sea before, and for a long while she stood at the edge of the water without saying a word."],
-  ["Homographs", "I read the book you read yesterday. They live near the live music hall."],
+  ["تحية", "مَرْحَبًا بِالْعالَمِ! هَذَا نِمُوذَجٌ صَغِيرٌ لِنُطْقٍ عَرَبِيٍّ فِي الْمُتَصَفِّحِ."],
+  ["سؤال", "هَلْ ذَهَبَتْ إِلَى الْجامِعَةِ الْيَوْمَ؟ نَعَمْ، ذَهَبَتْ صَبَاحًا."],
+  ["طبيعة", "الشَّمْسُ تَشْرُقُ مِنَ الشَّرْقِ، وَالطُّيُورُ تَطِيرُ فِي السَّماءِ."],
+  ["وقت", "فِي السَّاعَةِ الثَّالِثَةِ بَعْدَ الظُّهْرِ، اجْتَمَعَ الطُّلَّابُ فِي الْمَكْتَبَةِ."],
+  ["عدد", "عَدَدُ الْكُتُبِ عَلَى الطَّاوِلَةِ خَمْسَةٌ، وَالْكِتابُ عَلَى الْكُرْسِيِّ."],
 ];
 const $ = (id) => document.getElementById(id);
 const worker = new Worker("worker.js");
@@ -154,7 +155,7 @@ function setStatus(text, progress) {
 // While the sentences are playing, the button stops them.
 function update() {
   const playing = live !== null && live.playing;
-  $("speak").textContent = playing ? "Stop" : "Speak";
+  $("speak").textContent = playing ? "إيقاف" : "انطق";
   $("speak").disabled = !playing && (!ready || busy || !$("text").value.trim());
 }
 $("text").oninput = update;
@@ -174,11 +175,11 @@ function wav(samples, rate) {
 let phonemes = [];
 worker.onmessage = ({ data }) => {
   if (data.type === "status") setStatus(data.text, data.progress);
-  else if (data.type === "ready") { ready = true; rate = data.sampleRate; setStatus("Ready."); update(); }
+  else if (data.type === "ready") { ready = true; rate = data.sampleRate; setStatus("جاهز."); update(); }
   else if (data.type === "sentence" && data.id === request) {
     phonemes.push(data.phonemes);
     if (live && data.audio) live.add(data.audio, data.sampleRate);
-    setStatus(`Speaking sentence ${data.index + 1} of ${data.total}`, (data.index + 1) / data.total);
+    setStatus(`جارٍ نطق الجملة ${data.index + 1} من ${data.total}`, (data.index + 1) / data.total);
   } else if (data.type === "done" && data.id === request) {
     busy = false; update();
     const seconds = data.audio.length / data.sampleRate;
@@ -190,19 +191,19 @@ worker.onmessage = ({ data }) => {
     if (!live || !live.end()) $("audio").play().catch(() => {});
     $("m-audio").textContent = seconds.toFixed(1) + " s";
     $("m-time").textContent = (data.totalTime / 1000).toFixed(2) + " s";
-    $("m-speed").textContent = (seconds / (data.totalTime / 1000)).toFixed(1) + "× real time";
+    $("m-speed").textContent = (seconds / (data.totalTime / 1000)).toFixed(1) + "×";
     $("m-phonemes").textContent = Math.round(data.phonemeTime) + " ms";
     $("phonemes").textContent = phonemes.join("\n");
     $("result").hidden = false;
-    setStatus("Done.");
+    setStatus("تمّ.");
   } else if (data.type === "error") {
     busy = false;
     if (live) live.end();
     update();
-    setStatus(data.plain ? data.message : "Something went wrong: " + data.message);
+    setStatus(data.plain ? data.message : "حدث خطأ: " + data.message);
   }
 };
-worker.onerror = (event) => setStatus("Could not start: " + event.message);
+worker.onerror = (event) => setStatus("تعذّر التشغيل: " + event.message);
 
 // Sound has to start inside a click, so the player is made here and not when the first sentence arrives.
 function listen() {
@@ -223,7 +224,7 @@ $("speak").onclick = () => {
   request += 1;
   listen();
   update();
-  setStatus("Speaking…", 0);
+  setStatus("جارٍ النطق…", 0);
   worker.postMessage({ type: "speak", id: request, text: $("text").value,
                        voice: Number(document.querySelector("input[name=voice]:checked").value), speed: Number($("speed").value) });
 };
@@ -231,7 +232,7 @@ $("text").addEventListener("keydown", (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key === "Enter" && !$("speak").disabled) $("speak").click();
 });
 
-setStatus("Loading the model and the phonemizer…");
+setStatus("جارٍ تحميل النموذج ووحدة تحويل النص…");
 worker.postMessage({ type: "load" });
 </script>
 </body>

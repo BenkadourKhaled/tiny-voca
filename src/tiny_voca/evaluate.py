@@ -1,5 +1,11 @@
 """Free-running evaluation of a checkpoint. Cloud only.
 
+The language follows ``TINY_VOCA_LANGUAGE``: the English defaults keep the
+original behaviour, while ``ar`` uses fully vocalised MSA novel sentences,
+``language="ar"`` for ASR and an Arabic text normaliser. For the Arabic CPU
+model, run with ``--no-asr``: acoustic/timing metrics and audio pairs still
+work without downloading a speech recognition model.
+
 For training sentences (memorisation), held-out sentences (generalisation) and
 new sentences that are in no split, synthesise speech from TEXT ALONE (predicted
 durations, pitch, voicing and energy), then
@@ -28,7 +34,7 @@ from .config import Config
 from .data import AnnotatedDataset
 from .infer import load_model, speak
 from .losses import SpectralLoss
-from .text import phonemize
+from .text import language, phonemize
 
 NOVEL_SENTENCES = (
     "The quick brown fox jumps over the lazy dog near the quiet river.",
@@ -40,10 +46,42 @@ NOVEL_SENTENCES = (
     "Could you send me the report by Friday afternoon, please?",
     "She sells seashells by the seashore, and the shells she sells are surely seashells.",
 )
+# Fully vocalised MSA: the Arabic rules front end has no reliable tashkeel.
+# These sentences are checked against every annotation split at startup.
+ARABIC_NOVEL_SENTENCES = (
+    "مَرْحَبًا بِالْعالَمِ، كَيْفَ حَالُكَ الْيَوْمَ؟",
+    "أَرْجُو أَنْ تَتَذَكَّرَ الاتِّصَالَ بِجَدَّتِكَ قَبْلَ نِهايَةِ الْأُسْبُوعِ.",
+    "كَمْ شَخْصًا سَيَحْضُرُ الْمُؤْتَمَرَ فِي شَهْرِ سِبْتَمْبَرَ؟",
+    "لا أُصَدِّقُ أَنَّ السَّاعَةَ تَجَاوَزَتِ التَّاسِعَةَ وَالنِّصْفَ، يَجِبُ أَنْ نَرْحَلَ الْآنَ.",
+    "هٰذا نَمُوذَجٌ صَغيرٌ لِلنَّقْلِ مِنَ النَّصِّ إِلى الصَّوْتِ.",
+    "بَعْدَ أَنْ مَرَّتِ الْعاصِفَةُ، بَدَا هَواءُ الْجَبَلِ نَقيًّا وَصادِيًا وَدافِئًا بِشَكْلٍ مُفاجِئٍ.",
+    "هَلْ يُمْكِنُكَ أَنْ ترْسِلَ إِلَيَّ التَّقْريرَ بَعْدَ ظُهْرِ الْجُمُعَةِ مِنْ فَضْلِكَ؟",
+    "تَبيعُ البائِعَةُ أَصْدافَ الْبَحْرِ عِنْدَ شاطِئِ الْبَحْرِ، وَالْأَصْدافُ الَّتي تَبيعُها بِالتَّأْكيدِ أَصْدافُ بَحْرٍ.",
+)
 SEMITONES = 12 / np.log(2)
 
 
-def normalizer():
+def novel_sentences(lang=None):
+    """The novel sentences for the active language (never part of a split)."""
+    return ARABIC_NOVEL_SENTENCES if (lang or language()) == "ar" else NOVEL_SENTENCES
+
+
+def normalizer(lang=None):
+    """Text normaliser used for ASR word error rates.
+
+    Arabic strips tashkeel and tatweel and folds the orthographic variants that
+    Whisper transcribes differently; English keeps the original Whisper
+    normaliser with its regex fallback.
+    """
+    if (lang or language()) == "ar":
+        def normalize_arabic(text):
+            text = re.sub(r"[\u064b-\u065f\u0670\u0640]", "", text)
+            text = re.sub(r"[\u0622\u0623\u0625]", "\u0627", text)
+            text = re.sub(r"[\u0624\u0626]", "\u0621", text)
+            text = text.replace("\u0629", "\u0647")
+            text = re.sub(r"[^\u0621-\u064a0-9' ]", " ", text)
+            return re.sub(r"\s+", " ", text).strip()
+        return normalize_arabic
     try:
         from transformers.models.whisper.english_normalizer import EnglishTextNormalizer
         return EnglishTextNormalizer({})
@@ -88,14 +126,16 @@ def main():
     parser.add_argument("--splits", nargs="+", default=["train", "validation", "test"])
     parser.add_argument("--train-subset", type=int, help="Restrict 'train' examples to the first N balanced rows (the --subset used in training)")
     parser.add_argument("--per-voice", type=int, default=4)
-    parser.add_argument("--novel", type=int, default=len(NOVEL_SENTENCES))
+    parser.add_argument("--novel", type=int, default=len(novel_sentences()))
     parser.add_argument("--device", default="cuda")
-    parser.add_argument("--asr-model", default="small.en")
+    parser.add_argument("--asr-model", default=None, help="Whisper model; default: small.en (en) or small (ar)")
     parser.add_argument("--no-asr", action="store_true")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--speed", type=float, default=1.0)
     parser.add_argument("--pitch-range", type=float, default=1.0, help="Inference pitch-range setting under test (1 = as predicted)")
     args = parser.parse_args()
+    lang = language()
+    asr_model = args.asr_model or ("small" if lang == "ar" else "small.en")
     import soundfile as sf
     from .train import balanced_indices
     model = load_model(args.checkpoint, args.device)
@@ -119,7 +159,7 @@ def main():
         for voice in c.speakers:
             chosen = spread([i for i in candidates if dataset.rows[i]["speaker"] == voice], dataset.lengths, args.per_voice)
             jobs += [{"group": split, "voice": voice, "index": i, "id": dataset.rows[i]["id"], "text": dataset.rows[i]["text"]} for i in chosen]
-    for number, text in enumerate(NOVEL_SENTENCES[:args.novel]):
+    for number, text in enumerate(novel_sentences(lang)[:args.novel]):
         if hashlib.sha256(text.strip().encode()).hexdigest() in known_texts:
             raise ValueError("a 'novel' sentence is part of the dataset")
         jobs += [{"group": "novel", "voice": voice, "index": None, "id": f"novel{number:02d}_{voice}", "text": text} for voice in c.speakers]
@@ -169,15 +209,15 @@ def main():
     if not args.no_asr:
         import jiwer
         from faster_whisper import WhisperModel
-        asr = WhisperModel(args.asr_model, device="cpu", compute_type="int8", cpu_threads=8)
-        normalize = normalizer()
+        asr = WhisperModel(asr_model, device="cpu", compute_type="int8", cpu_threads=8)
+        normalize = normalizer(lang)
 
         def transcribe(path):
             from scipy.signal import resample_poly
             audio, rate = sf.read(path, dtype="float32")
             factor = int(np.gcd(rate, 16000))      # the ASR model expects 16 kHz samples
             audio = resample_poly(audio, 16000 // factor, rate // factor).astype(np.float32)
-            segments, _ = asr.transcribe(audio, language="en", beam_size=5, condition_on_previous_text=False, temperature=0.0)
+            segments, _ = asr.transcribe(audio, language=lang, beam_size=5, condition_on_previous_text=False, temperature=0.0)
             return " ".join(segment.text.strip() for segment in segments).strip()
         for record in samples:
             truth = normalize(record["text"])
@@ -201,7 +241,8 @@ def main():
                                          "reference_pitch_std_semitones", "generated_voiced_fraction", "reference_voiced_fraction")}}
     mismatched = [s["id"] for s in samples if s.get("tokens_match_annotation") is False]
     report = {"tag": args.tag, "checkpoint": str(args.checkpoint), "step": checkpoint_step,
-              "inference_parameters": sum(p.numel() for p in model.parameters()), "asr_model": None if args.no_asr else "faster-whisper " + args.asr_model,
+              "inference_parameters": sum(p.numel() for p in model.parameters()), "language": lang,
+              "asr_model": None if args.no_asr else "faster-whisper " + asr_model,
               "note": "generated audio is free-running: text in, predicted durations/pitch/voicing/energy",
               "settings": {"speed": args.speed, "pitch_range": args.pitch_range, "seed": args.seed},
               "frontend_token_mismatches": mismatched, "summary": summary, "samples": samples}

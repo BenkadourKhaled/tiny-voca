@@ -1,0 +1,3 @@
+SOURCE: 100 phrases écrites pour ce projet (project-own), 2026-11-17.
+LICENCE: domaine public (CC0 déclaré par l'auteur du projet) pour ces phrases.
+USAGE: comparaison des diacritiseurs CAMeL Tools vs Shakkala (Phase 1).

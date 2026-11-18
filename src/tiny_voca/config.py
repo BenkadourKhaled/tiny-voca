@@ -1,4 +1,4 @@
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 import hashlib
 import json
 
@@ -8,6 +8,12 @@ ANNOTATION_VERSION = 3
 
 def _digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
+
+
+def _default_vocab_size():
+    """Follow the active front-end inventory (76 English, 54 Arabic)."""
+    from .text import SYMBOLS
+    return len(SYMBOLS)
 
 
 @dataclass(frozen=True)
@@ -21,7 +27,7 @@ class Config:
     f0_max: float = 600.0
     speakers: tuple[str, ...] = ("F2", "M2")
     # Phoneme tokens from tiny_voca.text.SYMBOLS (front-end version 3).
-    vocab_size: int = 76
+    vocab_size: int = field(default_factory=_default_vocab_size)
     # Text encoder and frame-level transformer.
     channels: int = 192
     heads: int = 4

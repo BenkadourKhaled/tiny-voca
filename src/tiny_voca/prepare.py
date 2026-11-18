@@ -9,7 +9,6 @@ No network access: use the HF CLI separately to obtain a pinned dataset snapshot
 """
 
 import argparse
-import fcntl
 import hashlib
 import io
 import json
@@ -20,7 +19,7 @@ import numpy as np
 import soundfile as sf
 import torch
 from .config import Config
-from .journal import append, atomic_json, file_hash, json_safe, recover
+from .journal import append, atomic_json, exclusive_lock, file_hash, json_safe, recover
 
 MIN_FRAMES = 32
 
@@ -79,8 +78,7 @@ def main():
     c = Config.from_dict(json.loads(args.config.read_text())) if args.config else Config()
     args.output.mkdir(parents=True, exist_ok=True)
     # Lock is held through completion or an exception. Different splits may run separately.
-    with (args.output/(args.split+".lock")).open("a") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    with exclusive_lock(args.output/(args.split+".lock")):
         prepare_split(args, c)
 
 
@@ -138,7 +136,7 @@ def prepare_split(args, c):
                         raise ValueError("text must be a nonempty string")
                     if speaker not in c.speakers:
                         raise ValueError(f"unknown speaker {speaker!r}; expected {c.speakers}")
-                    provenance = json_safe({k:row[k] for k in ("text_id", "origin", "source_id", "source_license", "source_url", "teacher_model", "reference_audio") if k in row})
+                    provenance = json_safe({k:row[k] for k in ("text_id", "origin", "source_id", "source_license", "source_url", "source_citation", "teacher_model", "reference_audio") if k in row})
                     audio = row["audio"]
                     if isinstance(audio, dict):
                         audio = io.BytesIO(audio["bytes"]) if audio.get("bytes") is not None else source.parent / audio["path"]

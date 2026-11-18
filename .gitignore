@@ -4,6 +4,13 @@ __pycache__/
 .venv/
 .DS_Store
 data/
+# Phase 1 Arabic corpus and the pinned aligner vocabulary are small text
+# deliverables: keep them versioned while the rest of data/ stays ignored.
+!data/
+data/*
+!data/sentences_100.txt
+!data/french_notes.txt
+!data/aligner_vocab.json
 runs/
 *.pt
 *.onnx

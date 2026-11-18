@@ -1,0 +1,505 @@
+# Aperçu texte -> phonèmes (arabe MSA)
+
+Front-end : espeak (version 1)
+Source : C:\Users\User\tiny-voca-ar\out\diac_camel.txt
+
+## 1. مَرْحَبا بِالعالَم
+
+- PHONÈMES : m a r ħ a b aː <sp> b i aː l ʕ aː l a m
+- INCONNUS : aucun
+
+## 2. الشَمْس تَشَرَّقَ مِن الشَرْق
+
+- PHONÈMES : ʔ a ʃ ʃ a m s <sp> t a ʃ a r r a q a <sp> m i n <sp> ʔ a ʃ ʃ a r q
+- INCONNUS : aucun
+
+## 3. كُتُب الوَلَد الكِتاب فِي المَكْتَبَة
+
+- PHONÈMES : k u t u b <sp> ʔ a l w a l a d <sp> ʔ a l k i t aː b <sp> f iː <sp> ʔ a l m a k t a b a t
+- INCONNUS : aucun
+
+## 4. الطالِب يَدْرُس اللُغَة العَرَبِيَّة كُلْ يَوْم
+
+- PHONÈMES : ʔ a t̪ aː l i b <sp> j a d r u s <sp> ʔ a l l u ɣ a t <sp> ʔ a l ʕ a r a b iː a t <sp> k u l <sp> j a u m
+- INCONNUS : aucun
+
+## 5. هَل ذَهَبَت إِلَى الجامِعَة اليَوْم ؟
+
+- PHONÈMES : h a l <sp> ð a h a b a t <sp> ʔ i l aː <sp> ʔ a l dʒ aː m i ʕ a t <sp> ʔ a l j a u m
+- INCONNUS : aucun
+
+## 6. ما اِسْمكَ مِن فَضْلكَ
+
+- PHONÈMES : m aː <sp> ʔ i s m k a <sp> m i n <sp> f a dˤ l k a
+- INCONNUS : aucun
+
+## 7. أَنّا مُهَنْدِس بَرْمَجِيّات فِي شَرِكَة صَغِيره
+
+- PHONÈMES : ʔ a n n aː <sp> m u h a n d i s <sp> b a r m a dʒ iː aː t <sp> f iː <sp> ʃ a r i k a t <sp> s̪ a ɣ iː r h
+- INCONNUS : aucun
+
+## 8. القِطّ يَنام عَلَى الكُرْسِيّ
+
+- PHONÈMES : ʔ a l q i t̪ t̪ <sp> j a n aː m <sp> ʕ a l aː <sp> ʔ a l k u r s iː
+- INCONNUS : aucun
+
+## 9. السَماء زَرْقاء وَالطُيُور تَطِير
+
+- PHONÈMES : ʔ a s s a m aː ʔ <sp> z a r q ʔ <sp> w a t̪ u i uː r <sp> t a t̪ iː r
+- INCONNUS : aucun
+
+## 10. فِي الساعَة الثالِثَة بَعْدَ الظُهْر
+
+- PHONÈMES : f iː <sp> ʔ a s s aː ʕ a t <sp> ʔ a s s aː l i s a t <sp> b a ʕ d a <sp> ʔ a ð ð u h r
+- INCONNUS : aucun
+
+## 11. عَدَد الكُتُب عَلَى الطاوِلَة خَمَّسَهُ
+
+- PHONÈMES : ʕ a d a d <sp> ʔ a l k u t u b <sp> ʕ a l aː <sp> ʔ a t̪ aː w i l a t <sp> χ a m m a s a h u
+- INCONNUS : aucun
+
+## 12. مَدْرَسَة الأَطْفال قَرِيبه مِن البَيْت
+
+- PHONÈMES : m a d r a s a t <sp> ʔ a l ʔ a t̪ f aː l <sp> q a r iː b h <sp> m i n <sp> ʔ a l b a i t
+- INCONNUS : aucun
+
+## 13. الأَب يَعْمَل فِي المَصْنَع مُنْذُ عَشَر سَنَوات
+
+- PHONÈMES : ʔ a l ʔ a b <sp> j a ʕ m a l <sp> f iː <sp> ʔ a l m a s̪ n a ʕ <sp> m u n ð u <sp> ʕ a ʃ a r <sp> s a n a u aː t
+- INCONNUS : aucun
+
+## 14. الأُمّ تَطْعَم الطِفْل فِي المَطْبَخ
+
+- PHONÈMES : ʔ a l ʔ u m m <sp> t a t̪ ʕ a m <sp> ʔ a t̪ i f l <sp> f iː <sp> ʔ a l m a t̪ b a χ
+- INCONNUS : aucun
+
+## 15. المُدِير يُقَرّا التَقْرِير فِي المَكْتَب
+
+- PHONÈMES : ʔ a l m u d iː r <sp> j u q a r r aː <sp> ʔ a t t a q r iː r <sp> f iː <sp> ʔ a l m a k t a b
+- INCONNUS : aucun
+
+## 16. السَيّارَة الجَدِيدَة حَمْراء اللَوْن
+
+- PHONÈMES : ʔ a s s a iː aː r a t <sp> ʔ a l dʒ a d iː d a t <sp> ħ a m r aː ʔ <sp> ʔ a l l a u n
+- INCONNUS : aucun
+
+## 17. الشارِع مُزْدَحِم فِي الصَباح
+
+- PHONÈMES : ʔ a ʃ ʃ aː r i ʕ <sp> m u z d a ħ i m <sp> f iː <sp> ʔ a s̪ s̪ a b aː ħ
+- INCONNUS : aucun
+
+## 18. الحَدِيقَة جَمِيله فِي فَصْل الرَبِيع
+
+- PHONÈMES : ʔ a l ħ a d iː q a t <sp> dʒ a m iː l h <sp> f iː <sp> f a s̪ l <sp> ʔ a r r a b iː ʕ
+- INCONNUS : aucun
+
+## 19. المَطَر يَهْطِل بِغَزارَة اليَوْم
+
+- PHONÈMES : ʔ a l m a t̪ a r <sp> j a h t̪ i l <sp> b i ɣ a z aː r a t <sp> ʔ a l j a u m
+- INCONNUS : aucun
+
+## 20. الهَواء بارِد فِي الشِتاء
+
+- PHONÈMES : ʔ a l h a u ʔ <sp> b aː r i d <sp> f iː <sp> ʔ a ʃ ʃ i t aː ʔ <sp> b a k s l a ʃ
+- INCONNUS : aucun
+
+## 21. القَمَر يُضِيء السَماء لَيْلا
+
+- PHONÈMES : ʔ a l q a m a r <sp> j u dˤ iː ʔ <sp> ʔ a s s a m aː ʔ <sp> l a i l aː
+- INCONNUS : aucun
+
+## 22. النُجُوم تُظْهَر بَعْدَ غُرُوب الشَمْس
+
+- PHONÈMES : ʔ a n n u dʒ uː m <sp> t u ð h a r <sp> b a ʕ d a <sp> ɣ u r uː b <sp> ʔ a ʃ ʃ a m s
+- INCONNUS : aucun
+
+## 23. البَحْر هادِئ فِي الصَيْف
+
+- PHONÈMES : ʔ a l b a ħ r <sp> h aː d i ʔ <sp> f iː <sp> ʔ a s̪ s̪ a i f
+- INCONNUS : aucun
+
+## 24. الجِبال عالِيَة فِي الشَمال
+
+- PHONÈMES : ʔ a l dʒ i b aː l <sp> ʕ aː l iː a t <sp> f iː <sp> ʔ a ʃ ʃ a m aː l
+- INCONNUS : aucun
+
+## 25. النَهْر يُجْرَى عَبْر الوادِي
+
+- PHONÈMES : ʔ a n n a h r <sp> j u dʒ r aː <sp> ʕ a b r <sp> ʔ a l w aː d iː
+- INCONNUS : aucun
+
+## 26. المَدِينَة كَبِيره وَشَوارِعها وَأَسْعَه
+
+- PHONÈMES : ʔ a l m a d iː n a t <sp> k a b iː r h <sp> w a ʃ a u aː r i ʕ h aː <sp> w a ʔ a s ʕ a h
+- INCONNUS : aucun
+
+## 27. القَرْيَة صَغِيره لَكُنَّها هادِئه
+
+- PHONÈMES : ʔ a l q a r j a t <sp> s̪ a ɣ iː r h <sp> l a k u n n a h aː <sp> h aː d i ʔ h
+- INCONNUS : aucun
+
+## 28. السُوق مَفْتُوح مِن الصَباح إِلَى المَساء
+
+- PHONÈMES : ʔ a s s uː q <sp> m a f t uː ħ <sp> m i n <sp> ʔ a s̪ s̪ a b aː ħ <sp> ʔ i l aː <sp> ʔ a l m a s aː ʔ
+- INCONNUS : aucun
+
+## 29. البائِع يَبِيع الفَواكِه وَالخَضار
+
+- PHONÈMES : ʔ a l b aː ʔ i ʕ <sp> j a b iː ʕ <sp> ʔ a l f a u aː k i h <sp> w a l χ a dˤ aː r <sp> s a m aː n i j a
+- INCONNUS : aucun
+
+## 30. الطَعام لَذِيذ جِدّاً اليَوْم
+
+- PHONÈMES : ʔ a t̪ a ʕ aː m <sp> l a ð iː ð <sp> dʒ i d d aː <sp> ʔ a l j a u m
+- INCONNUS : aucun
+
+## 31. الخُبْز طازِج مِن الفُرْن
+
+- PHONÈMES : ʔ a l χ u b z <sp> t̪ aː z i dʒ <sp> m i n <sp> ʔ a l f u r n
+- INCONNUS : aucun
+
+## 32. القَهْوَة سَوْداء وَأَحَبَّها كَثِيرا
+
+- PHONÈMES : ʔ a l q a h w a t <sp> s a u d aː ʔ <sp> w a ʔ a ħ a b b a h aː <sp> k a s iː r aː
+- INCONNUS : aucun
+
+## 33. الشاي الأَخْضَر مُفِيد لِلصِحَّة
+
+- PHONÈMES : ʔ a ʃ ʃ aː j <sp> ʔ a l ʔ a χ dˤ a r <sp> m u f iː d <sp> l i s̪ i ħ ħ a t
+- INCONNUS : aucun
+
+## 34. الحَلِيب مَوْجُود فِي الثَلّاجَة
+
+- PHONÈMES : ʔ a l ħ a l iː b <sp> m a u dʒ uː d <sp> f iː <sp> ʔ a s s a l l aː dʒ a t
+- INCONNUS : aucun
+
+## 35. الأُسْرَة تَجْتَمِع حَوَّلَ الطاوِلَة
+
+- PHONÈMES : ʔ a l ʔ u s r a t <sp> t a dʒ t a m i ʕ <sp> ħ a uː a l a <sp> ʔ a t̪ aː w i l a t
+- INCONNUS : aucun
+
+## 36. الأَصْدِقاء يَلْعَبُونَ فِي الحَدِيقَة
+
+- PHONÈMES : ʔ a l ʔ a s̪ d i q ʔ <sp> j a l ʕ a b uː n a <sp> f iː <sp> ʔ a l ħ a d iː q a t
+- INCONNUS : aucun
+
+## 37. الطِفْلَة تُضْحكَ بِصَوْت عال
+
+- PHONÈMES : ʔ a t̪ i f l a t <sp> t u dˤ ħ k a <sp> b i s̪ a u t <sp> ʕ aː l
+- INCONNUS : aucun
+
+## 38. الرَجُل يُقَرّا الجَرِيدَة تَحْتَ الشَجَرَة
+
+- PHONÈMES : ʔ a r r a dʒ u l <sp> j u q a r r aː <sp> ʔ a l dʒ a r iː d a t <sp> t a ħ t a <sp> ʔ a ʃ ʃ a dʒ a r a t
+- INCONNUS : aucun
+
+## 39. المَرْأَة تَكْتُب رِسالَة إِلَى صَدِيقَتها
+
+- PHONÈMES : ʔ a l m a r ʔ a t <sp> t a k t u b <sp> r i s aː l a t <sp> ʔ i l aː <sp> s̪ a d iː q a t h aː
+- INCONNUS : aucun
+
+## 40. الطَبِيب يُعالَج المَرِيض فِي العِيادَة
+
+- PHONÈMES : ʔ a t̪ a b iː b <sp> j u ʕ aː l a dʒ <sp> ʔ a l m a r iː dˤ <sp> f iː <sp> ʔ a l ʕ iː aː d a t
+- INCONNUS : aucun
+
+## 41. المَرِيض يَحْتاج إِلَى دَواء جَدِيد
+
+- PHONÈMES : ʔ a l m a r iː dˤ <sp> j a ħ t aː dʒ <sp> ʔ i l aː <sp> d a u ʔ <sp> dʒ a d iː d
+- INCONNUS : aucun
+
+## 42. الدَواء مَوْجُود فِي الصَيْدَلِيَّة
+
+- PHONÈMES : ʔ a d d a u ʔ <sp> m a u dʒ uː d <sp> f iː <sp> ʔ a s̪ s̪ a i d a l iː a t
+- INCONNUS : aucun
+
+## 43. المُهَنْدِس يَبْنِي جِسْرا فَوْق النَهْر
+
+- PHONÈMES : ʔ a l m u h a n d i s <sp> j a b n iː <sp> dʒ i s r aː <sp> f a u q <sp> ʔ a n n a h r
+- INCONNUS : aucun
+
+## 44. العامِل يَصْلُح الآلَة فِي الوَرْشَة
+
+- PHONÈMES : ʔ a l ʕ aː m i l <sp> j a s̪ l u ħ <sp> a l ʔ aː l a t <sp> f iː <sp> ʔ a l w a r ʃ a t
+- INCONNUS : aucun
+
+## 45. المَزارِع يَزْرَع القَمْح فِي الحَقْل
+
+- PHONÈMES : ʔ a l m a z aː r i ʕ <sp> j a z r a ʕ <sp> ʔ a l q a m ħ <sp> f iː <sp> ʔ a l ħ a q l
+- INCONNUS : aucun
+
+## 46. الحِصاد يَبْدَآ فِي شَهْر أَيْلُول
+
+- PHONÈMES : ʔ a l ħ i s̪ aː d <sp> j a b d a ʔ aː <sp> f iː <sp> ʃ a h r <sp> ʔ a i l uː l
+- INCONNUS : aucun
+
+## 47. القَمْح جَيِّد هٰذا العام
+
+- PHONÈMES : ʔ a l q a m ħ <sp> dʒ a iː i d <sp> h aː ð aː <sp> ʔ a l ʕ aː m
+- INCONNUS : aucun
+
+## 48. التُجّار يَبِيعُونَ البَضائِع فِي السُوق
+
+- PHONÈMES : ʔ a t t u dʒ dʒ aː r <sp> j a b iː ʕ uː n a <sp> ʔ a l b a dˤ aː ʔ i ʕ <sp> f iː <sp> ʔ a s s uː q
+- INCONNUS : aucun
+
+## 49. السِعْر مُناسِب لَكُلّ الناس
+
+- PHONÈMES : ʔ a s s i ʕ r <sp> m u n aː s i b <sp> l a k u l l <sp> ʔ a n n aː s
+- INCONNUS : aucun
+
+## 50. النُقُود فِي جَيْبَيَّ تَكْفِي لِلغَداء
+
+- PHONÈMES : ʔ a n n u q uː d <sp> f iː <sp> dʒ a i b a iː a <sp> t a k f iː <sp> l i l ɣ a d aː ʔ
+- INCONNUS : aucun
+
+## 51. الساعَة تُشِير إِلَى الثانِيَة عَشَره
+
+- PHONÈMES : ʔ a s s aː ʕ a t <sp> t u ʃ iː r <sp> ʔ i l aː <sp> ʔ a s s aː n iː a t <sp> ʕ a ʃ a r h
+- INCONNUS : aucun
+
+## 52. غَداً يَوْم الخَمِيس أَنَّ شاءَ اللّٰه
+
+- PHONÈMES : ɣ a d aː <sp> j a u m <sp> ʔ a l χ a m iː s <sp> ʔ a n n a <sp> ʃ aː ʔ a <sp> ʔ a l l l aː h
+- INCONNUS : aucun
+
+## 53. أَمَسّ كانَ يَوْم الأَرْبِعاء
+
+- PHONÈMES : ʔ a m a s s <sp> k aː n a <sp> j a u m <sp> ʔ a l ʔ a r b i ʕ aː ʔ
+- INCONNUS : aucun
+
+## 54. فِي شَهْر كانُون الثانِي يَبْرُد الجَوّ
+
+- PHONÈMES : f iː <sp> ʃ a h r <sp> k aː n uː n <sp> ʔ a s s aː n iː <sp> j a b r u d <sp> ʔ a l dʒ a uː
+- INCONNUS : aucun
+
+## 55. السَنَة الجَدِيدَة تَبْدَآ بَعْدَ أُسْبُوع
+
+- PHONÈMES : ʔ a s s a n a t <sp> ʔ a l dʒ a d iː d a t <sp> t a b d a ʔ aː <sp> b a ʕ d a <sp> ʔ u s b uː ʕ
+- INCONNUS : aucun
+
+## 56. عِيد الفُطْر قَرِيب مِن شَهْر رَمَضان
+
+- PHONÈMES : ʕ iː d <sp> ʔ a l f u t̪ r <sp> q a r iː b <sp> m i n <sp> ʃ a h r <sp> r a m a dˤ aː n <sp> s a l aː s a
+- INCONNUS : aucun
+
+## 57. رَمَضان شَهْر الصَوْم وَالعِبادَة
+
+- PHONÈMES : r a m a dˤ aː n <sp> ʃ a h r <sp> ʔ a s̪ s̪ a u m <sp> w a l ʕ i b aː d a t
+- INCONNUS : aucun
+
+## 58. المَسْجِد قَرِيب مِن مَنْزِلَيَّ
+
+- PHONÈMES : ʔ a l m a s dʒ i d <sp> q a r iː b <sp> m i n <sp> m a n z i l a iː a
+- INCONNUS : aucun
+
+## 59. الأَمام يُقَرّا القُرْآن بِصَوْت جَمِيل
+
+- PHONÈMES : ʔ a l ʔ a m aː m <sp> j u q a r r aː <sp> ʔ a l q u r ʔ aː n <sp> b i s̪ a u t <sp> dʒ a m iː l
+- INCONNUS : aucun
+
+## 60. القُرْآن كِتاب المُسْلِمَيْنِ
+
+- PHONÈMES : ʔ a l q u r ʔ aː n <sp> k i t aː b <sp> ʔ a l m u s l i m a i n i
+- INCONNUS : aucun
+
+## 61. اللُغَة العَرَبِيَّة لُغَة جَمِيله وَغَنِيّه
+
+- PHONÈMES : ʔ a l l u ɣ a t <sp> ʔ a l ʕ a r a b iː a t <sp> l u ɣ a t <sp> dʒ a m iː l h <sp> w a ɣ a n iː h
+- INCONNUS : aucun
+
+## 62. الحُرُوف العَرَبِيَّة تَشْمَل ثَمانِيَة وَعُشْرَيْنِ حَرْفا
+
+- PHONÈMES : ʔ a l ħ u r uː f <sp> ʔ a l ʕ a r a b iː a t <sp> t a ʃ m a l <sp> s a m aː n iː a t <sp> w a ʕ u ʃ r a i n i <sp> ħ a r f aː
+- INCONNUS : aucun
+
+## 63. الكَلِمَة تَتَكَوَّن مِن حُرُوف مُتَعَدِّده
+
+- PHONÈMES : ʔ a l k a l i m a t <sp> t a t a k a uː a n <sp> m i n <sp> ħ u r uː f <sp> m u t a ʕ a d d i d h
+- INCONNUS : aucun
+
+## 64. الجُمْلَة المُفِيدَة لَها مَعْنَى كامِل
+
+- PHONÈMES : ʔ a l dʒ u m l a t <sp> ʔ a l m u f iː d a t <sp> l a h aː <sp> m a ʕ n aː <sp> k aː m i l
+- INCONNUS : aucun
+
+## 65. السُؤال يَحْتاج إِلَى جَواب واضِح
+
+- PHONÈMES : ʔ a s s u ʔ aː l <sp> j a ħ t aː dʒ <sp> ʔ i l aː <sp> dʒ a u aː b <sp> w aː dˤ i ħ
+- INCONNUS : aucun
+
+## 66. الإِجابَة مَكْتُوبه فِي الدَفْتَر
+
+- PHONÈMES : ʔ a l ʔ i dʒ aː b a t <sp> m a k t uː b h <sp> f iː <sp> ʔ a d d a f t a r
+- INCONNUS : aucun
+
+## 67. الدَفْتَر مَوْضُوع عَلَى المَكْتَب
+
+- PHONÈMES : ʔ a d d a f t a r <sp> m a u dˤ uː ʕ <sp> ʕ a l aː <sp> ʔ a l m a k t a b
+- INCONNUS : aucun
+
+## 68. القَلَم جَدِيد وَالوَرَق أَبْيَض
+
+- PHONÈMES : ʔ a l q a l a m <sp> dʒ a d iː d <sp> w a l w a r a q <sp> ʔ a b j a dˤ
+- INCONNUS : aucun
+
+## 69. الكَمْبيُوتِر عَلَى الطاوِلَة يَعْمَل بِسُرْعَة
+
+- PHONÈMES : ʔ a l k a m b iː uː t i r <sp> ʕ a l aː <sp> ʔ a t̪ aː w i l a t <sp> j a ʕ m a l <sp> b i s u r ʕ a t
+- INCONNUS : aucun
+
+## 70. الإِنْتِرْنِت مُفِيد لِلبَحْث وَالتَعَلُّم
+
+- PHONÈMES : ʔ a l ʔ i n t i r n i t <sp> m u f iː d <sp> l i l b a ħ s <sp> w a t a ʕ a l l u m
+- INCONNUS : aucun
+
+## 71. البَرِيد الإِلِكْترُونِيّ يَصِل فِي دَقائِق
+
+- PHONÈMES : ʔ a l b a r iː d <sp> ʔ a l ʔ i l i k t r uː n iː <sp> j a s̪ i l <sp> f iː <sp> d a q aː ʔ i q
+- INCONNUS : aucun
+
+## 72. الهاتِف الذَكِيّ فِي جَيْبَيَّ
+
+- PHONÈMES : ʔ a l h aː t i f <sp> ʔ a ð ð a k iː <sp> f iː <sp> dʒ a i b a iː a
+- INCONNUS : aucun
+
+## 73. الرِسالَة وَصَلَت إِلَى صَدِيقَيَّ
+
+- PHONÈMES : ʔ a r r i s aː l a t <sp> w a s̪ a l a t <sp> ʔ i l aː <sp> s̪ a d iː q a iː a
+- INCONNUS : aucun
+
+## 74. الصَدِيق يُسافِر إِلَى بَلَد بِعِيد
+
+- PHONÈMES : ʔ a s̪ s̪ a d iː q <sp> j u s aː f i r <sp> ʔ i l aː <sp> b a l a d <sp> b i ʕ iː d
+- INCONNUS : aucun
+
+## 75. السَفَر بِالطائِرَة أَسْرَع مِن القِطار
+
+- PHONÈMES : ʔ a s s a f a r <sp> b i aː t̪ aː ʔ i r a t <sp> ʔ a s r a ʕ <sp> m i n <sp> ʔ a l q i t̪ aː r
+- INCONNUS : aucun
+
+## 76. القِطار يَتَوَقَّف فِي المَحَطَّة الكَبِيرَة
+
+- PHONÈMES : ʔ a l q i t̪ aː r <sp> j a t a u a q q a f <sp> f iː <sp> ʔ a l m a ħ a t̪ t̪ a t <sp> ʔ a l k a b iː r a t
+- INCONNUS : aucun
+
+## 77. المَحَطَّة مُزْدَحِم بِالمُسافِرَيْنِ
+
+- PHONÈMES : ʔ a l m a ħ a t̪ t̪ a t <sp> m u z d a ħ i m <sp> b i aː l m u s aː f i r a i n i
+- INCONNUS : aucun
+
+## 78. الحَقِيبَة ثَقِيله لَكُنَّها مُفِيده
+
+- PHONÈMES : ʔ a l ħ a q iː b a t <sp> s a q iː l h <sp> l a k u n n a h aː <sp> m u f iː d h
+- INCONNUS : aucun
+
+## 79. الجَواز مَوْجُود فِي الحَقِيبَة
+
+- PHONÈMES : ʔ a l dʒ a u aː z <sp> m a u dʒ uː d <sp> f iː <sp> ʔ a l ħ a q iː b a t
+- INCONNUS : aucun
+
+## 80. المُسافِر يَنْتَظِر فِي المَطار
+
+- PHONÈMES : ʔ a l m u s aː f i r <sp> j a n t a ð i r <sp> f iː <sp> ʔ a l m a t̪ aː r
+- INCONNUS : aucun
+
+## 81. الطائِرَة تُقْلِع فِي الساعَة السادِسَة
+
+- PHONÈMES : ʔ a t̪ aː ʔ i r a t <sp> t u q l i ʕ <sp> f iː <sp> ʔ a s s aː ʕ a t <sp> ʔ a s s aː d i s a t
+- INCONNUS : aucun
+
+## 82. المَرْحَلَة القادِمَة صَعْبه لَكُنَّها مَهَمَّة
+
+- PHONÈMES : ʔ a l m a r ħ a l a t <sp> ʔ a l q aː d i m a t <sp> s̪ a ʕ b h <sp> l a k u n n a h aː <sp> m a h a m m a t
+- INCONNUS : aucun
+
+## 83. النَجاح يَحْتاج إِلَى عَمَل دَؤُوب
+
+- PHONÈMES : ʔ a n n a dʒ aː ħ <sp> j a ħ t aː dʒ <sp> ʔ i l aː <sp> ʕ a m a l <sp> d a ʔ uː b
+- INCONNUS : aucun
+
+## 84. الفَشَل لا يَعْنِي نِهايَة الطَرِيق
+
+- PHONÈMES : ʔ a l f a ʃ a l <sp> l aː <sp> j a ʕ n iː <sp> n i h aː j a t <sp> ʔ a t̪ a r iː q
+- INCONNUS : aucun
+
+## 85. الأَمَل مَوْجُود فِي كُلْ يَوْم جَدِيد
+
+- PHONÈMES : ʔ a l ʔ a m a l <sp> m a u dʒ uː d <sp> f iː <sp> k u l <sp> j a u m <sp> dʒ a d iː d
+- INCONNUS : aucun
+
+## 86. الحَياة جَمِيله رَغْم الصُعُوبات
+
+- PHONÈMES : ʔ a l ħ a i aː t <sp> dʒ a m iː l h <sp> r a ɣ m <sp> ʔ a s̪ s̪ u ʕ uː b aː t
+- INCONNUS : aucun
+
+## 87. الصَبْر جَمِيل وَاللّٰه يَعْلَم
+
+- PHONÈMES : ʔ a s̪ s̪ a b r <sp> dʒ a m iː l <sp> w a l l aː h <sp> j a ʕ l a m
+- INCONNUS : aucun
+
+## 88. العِلْم نُور وَالجَهْل ظَلام
+
+- PHONÈMES : ʔ a l ʕ i l m <sp> n uː r <sp> w a l dʒ a h l <sp> ð a l aː m
+- INCONNUS : aucun
+
+## 89. القارِئ يُقَرّا الكِتاب بِصَوْت هادِئ
+
+- PHONÈMES : ʔ a l q aː r i ʔ <sp> j u q a r r aː <sp> ʔ a l k i t aː b <sp> b i s̪ a u t <sp> h aː d i ʔ
+- INCONNUS : aucun
+
+## 90. الطِفْل يَلْعَب بِالكُرات فِي الساحَة
+
+- PHONÈMES : ʔ a t̪ i f l <sp> j a l ʕ a b <sp> b i aː l k u r aː t <sp> f iː <sp> ʔ a s s aː ħ a t
+- INCONNUS : aucun
+
+## 91. الكِتاب مَوْجُود عَلَى الرَفّ الأَوَّل
+
+- PHONÈMES : ʔ a l k i t aː b <sp> m a u dʒ uː d <sp> ʕ a l aː <sp> ʔ a r r a f f <sp> ʔ a l ʔ a uː a l
+- INCONNUS : aucun
+
+## 92. الرَفّ خَشَبِي وَجَمِيل الشَكْل
+
+- PHONÈMES : ʔ a r r a f f <sp> χ a ʃ a b iː <sp> w a dʒ a m iː l <sp> ʔ a ʃ ʃ a k l
+- INCONNUS : aucun
+
+## 93. المَكْتَبَة فِيها كَثِيره مِن الكُتُب
+
+- PHONÈMES : ʔ a l m a k t a b a t <sp> f iː h aː <sp> k a s iː r h <sp> m i n <sp> ʔ a l k u t u b
+- INCONNUS : aucun
+
+## 94. الجامِعَة كَبِيره وَكَثِيره الطُلّاب
+
+- PHONÈMES : ʔ a l dʒ aː m i ʕ a t <sp> k a b iː r h <sp> w a k a s iː r h <sp> ʔ a t̪ u l l aː b
+- INCONNUS : aucun
+
+## 95. الطالِبات يَدْرُسْنَ فِي القاعَة
+
+- PHONÈMES : ʔ a t̪ aː l i b aː t <sp> j a d r u s n a <sp> f iː <sp> ʔ a l q aː ʕ a t
+- INCONNUS : aucun
+
+## 96. القاعَة وَأَسْعَه وَمُضِيئه
+
+- PHONÈMES : ʔ a l q aː ʕ a t <sp> w a ʔ a s ʕ a h <sp> w a m u dˤ iː ʔ h
+- INCONNUS : aucun
+
+## 97. الاِمْتِحان يَبْدَآ بَعْدَ دَقائِق
+
+- PHONÈMES : a l ʔ i m t i ħ aː n <sp> j a b d a ʔ aː <sp> b a ʕ d a <sp> d a q aː ʔ i q
+- INCONNUS : aucun
+
+## 98. النَتِيجَة تُظْهَر فِي شَهْر حَزِيران
+
+- PHONÈMES : ʔ a n n a t iː dʒ a t <sp> t u ð h a r <sp> f iː <sp> ʃ a h r <sp> ħ a z iː r aː n
+- INCONNUS : aucun
+
+## 99. العَمَل الشاقّ يُؤَدَّى إِلَى النَجاح
+
+- PHONÈMES : ʔ a l ʕ a m a l <sp> ʔ a ʃ ʃ aː q q <sp> j u ʔ a d d aː <sp> ʔ i l aː <sp> ʔ a n n a dʒ aː ħ
+- INCONNUS : aucun
+
+## 100. الوَقْت يَمْضِي بِسُرْعَة كَبِيره
+
+- PHONÈMES : ʔ a l w a q t <sp> j a m dˤ iː <sp> b i s u r ʕ a t <sp> k a b iː r h
+- INCONNUS : aucun
+
