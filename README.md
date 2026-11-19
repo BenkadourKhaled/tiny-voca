@@ -24,6 +24,14 @@ The upstream English release has two voices; this repository also builds an
 - **Voice answers (optional HTTP service)**: text question -> LLM answer ->
   Arabic tashkeel -> WAV voice message. See [server/README.md](server/README.md).
 
+One command starts the whole stack (Ollama `qwen2.5:14b`, Apache-2.0, + the API)
+with the 9 GB model in a persistent volume:
+
+```bash
+docker compose up -d --build
+# then open http://127.0.0.1:8000/app
+```
+
 Documentation: [Arabic front end](docs/arabic-frontend.md) ·
 [Arabic data](docs/arabic-data.md) · [CPU pipeline](docs/arabic-pipeline.md) ·
 [Browser demo](docs/arabic-demo.md) · [Voice-answer service](server/README.md).
