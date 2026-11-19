@@ -21,10 +21,12 @@ The upstream English release has two voices; this repository also builds an
 - **Open**: code, weights, training recipe and dataset.
 - **Browser front end without eSpeak**: the Arabic demo ships a pure-Python G2P
   in Pyodide. eSpeak NG (GPL-3.0) is never embedded.
+- **Voice answers (optional HTTP service)**: text question -> LLM answer ->
+  Arabic tashkeel -> WAV voice message. See [server/README.md](server/README.md).
 
 Documentation: [Arabic front end](docs/arabic-frontend.md) ·
 [Arabic data](docs/arabic-data.md) · [CPU pipeline](docs/arabic-pipeline.md) ·
-[Browser demo](docs/arabic-demo.md).
+[Browser demo](docs/arabic-demo.md) · [Voice-answer service](server/README.md).
 
 ## Install
 
