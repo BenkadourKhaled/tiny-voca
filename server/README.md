@@ -206,7 +206,9 @@ with a stand-in: they need neither network nor API key.
 
 ## 7. Production notes
 
-- **Format**: WAV works in browsers. For WhatsApp/Telegram, convert to Opus/OGG
+- **Format**: 24 kHz mono **16-bit PCM WAV** (tag 1, ~48 KB/s), playable by every
+  browser and voice-messaging tool. Float WAV (tag 3) made some players report a
+  wrong or truncated duration. For WhatsApp/Telegram, convert to Opus/OGG
   in an image that has a **licensed** ffmpeg build:
   `ffmpeg -i reponse.wav -c:a libopus -b:a 32k reponse.ogg`. ffmpeg is not
   installed on the development machine.

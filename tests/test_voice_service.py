@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import sys
 import unittest
+import wave as wave_file
 from unittest.mock import Mock, patch
 from urllib.parse import unquote
 
@@ -185,7 +186,12 @@ class VoiceEngineTests(unittest.TestCase):
         samples, rate = sf.read(io.BytesIO(raw), dtype="float32")
         self.assertEqual(rate, 24000)
         self.assertEqual(len(samples), len(wave))
-        np.testing.assert_allclose(samples, wave, atol=1e-6)             # float WAV: no quantisation
+        np.testing.assert_allclose(samples, wave, atol=4e-5)             # 16-bit quantisation
+        # Any player must read the file: float WAV (tag 3) is not universal.
+        with wave_file.open(io.BytesIO(raw)) as readable:
+            self.assertEqual(readable.getnframes(), len(wave))
+            self.assertEqual(readable.getsampwidth(), 2)
+            self.assertEqual(readable.getframerate(), 24000)
 
     def test_speed_and_pitch_range_change_the_output(self):
         slow = self.speech.synthesize(VOCALIZED, speed=0.7)
@@ -207,6 +213,7 @@ class EndpointTests(unittest.TestCase):
     def wav(self, response):
         self.assertEqual(response.status_code, 200, response.text)
         self.assertIn("audio/wav", response.headers["content-type"])
+        self.assertEqual(response.content[20:22], b"\x01\x00")            # PCM, not float
         samples, rate = sf.read(io.BytesIO(response.content), dtype="float32")
         self.assertEqual(rate, 24000)
         self.assertGreater(len(samples), 0)

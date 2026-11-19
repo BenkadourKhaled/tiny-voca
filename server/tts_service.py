@@ -102,7 +102,9 @@ class VoiceEngine:
 
     def wav_bytes(self, wave: np.ndarray) -> bytes:
         buffer = io.BytesIO()
-        sf.write(buffer, wave, self.config["sample_rate"], format="WAV", subtype="FLOAT")
+        # 16-bit PCM (format tag 1) plays everywhere. IEEE float WAV (tag 3)
+        # makes some browsers/players report a wrong or truncated duration.
+        sf.write(buffer, wave, self.config["sample_rate"], format="WAV", subtype="PCM_16")
         return buffer.getvalue()
 
     def check_voice(self, voice: str):
