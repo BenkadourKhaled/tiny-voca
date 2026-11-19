@@ -221,6 +221,14 @@ class EndpointTests(unittest.TestCase):
             self.assertIn('createElement("audio")', response.text)
             self.assertIn("history: history", response.text)
 
+    def test_demo_page_shows_the_answer_as_audio_only(self):
+        html = self.client.get("/app").text
+        self.assertIn(".bot .text { display: none; }", html)
+        self.assertIn("رسالة صوتية", html)
+        # nothing was removed: the text header and the history are still used
+        self.assertIn('response.headers.get("X-Answer-Text")', html)
+        self.assertIn("history.push", html)
+
     def test_health_reports_language_frontend_voice_and_attribution(self):
         data = self.client.get("/health").json()
         self.assertEqual(data["status"], "ok")

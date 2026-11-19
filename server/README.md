@@ -129,9 +129,10 @@ python -m uvicorn server.tts_service:app --host 0.0.0.0 --port 8000
 Interactive documentation: <http://127.0.0.1:8000/docs>.  
 **Ready-to-use chat application: <http://127.0.0.1:8000/app>** (`/demo` is an
 alias) — type a question in Arabic, press « أرسل » and hear the voice answer.
-The conversation stays on screen and the last six turns are sent to the LLM so
-follow-up questions keep their context. Everything is served from the same
-origin, so no CORS setup is needed.
+The answer text is **hidden in the UI: voice only**. The implementation is kept:
+the text still arrives in `X-Answer-Text` and stays in the conversation history
+sent to the LLM, so follow-up questions keep their context. Everything is served
+from the same origin, so no CORS setup is needed.
 
 The ONNX session is created once at the first request and protected by a lock;
 it is never reloaded per request.

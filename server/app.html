@@ -19,6 +19,8 @@
   .error { align-self:center; background:#ffe6e6; color:#8a1f1f; }
   .typing { align-self:flex-start; color:#666; font-size:.9rem; }
   .label { font-size:.72rem; color:#777; margin-bottom:.25rem; }
+  /* Keep the answer text in the DOM (history/debug) but show voice only. */
+  .bot .text { display: none; }
   audio { width:100%; margin-top:.7rem; height:36px; }
   #composer { display:flex; gap:.6rem; position:sticky; bottom:0; background:var(--bg); padding:.8rem 0 1.2rem; }
   #question { flex:1; padding:.8rem 1rem; font-size:1rem; border:1px solid var(--line); border-radius:10px; }
@@ -32,7 +34,7 @@
 <body>
 <header>
   <h1>تحدث مع مساعدك الصوتي</h1>
-  <p>اكتب سؤالك بالعربية، وستصلك الإجابة مكتوبة ومسموعة. ابدأ محادثة جديدة.</p>
+  <p>اكتب سؤالك بالعربية، وستصلك الإجابة صوتية فقط. ابدأ محادثة جديدة.</p>
 </header>
 <main>
   <div id="chat" aria-live="polite"></div>
@@ -74,7 +76,7 @@ function addUser(text) {
 }
 
 function addBot(text, blob) {
-  const div = bubble("bot", '<div class="label">الجواب</div><div class="text">' +
+  const div = bubble("bot", '<div class="label">رسالة صوتية</div><div class="text">' +
                      escapeHtml(text) + "</div>");
   const audio = document.createElement("audio");
   audio.controls = true;
