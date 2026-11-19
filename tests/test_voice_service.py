@@ -48,6 +48,17 @@ class FakeResponse:
         return None
 
 
+class MockLlmTests(unittest.TestCase):
+    def test_the_fake_llm_returns_a_valid_arabic_answer(self):
+        from server.mock_llm import ANSWER, payload
+
+        data = payload("كيف حالك؟")
+        content = data["choices"][0]["message"]["content"]
+        self.assertEqual(content, ANSWER)
+        self.assertTrue(any("\u0600" <= char <= "\u06ff" for char in content))
+        self.assertEqual(data["object"], "chat.completion")
+
+
 class AnswerTextTests(unittest.TestCase):
     def test_sanitize_keeps_arabic_and_drops_latin_and_emoji(self):
         self.assertEqual(sanitize("مرحبا 😊 hello 42، كيف حالك؟"), "مرحبا 42، كيف حالك؟")

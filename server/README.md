@@ -84,6 +84,26 @@ origin, so no CORS setup is needed.
 The ONNX session is created once at the first request and protected by a lock;
 it is never reloaded per request.
 
+### Test without any LLM or API key
+
+A development-only fake LLM is included. In two terminals:
+
+```powershell
+# Terminal 1 - fake LLM (stdlib only, no install)
+python server\mock_llm.py 8011
+
+# Terminal 2 - the voice service
+$env:TINY_VOCA_LLM_URL   = "http://127.0.0.1:8011/v1/chat/completions"
+$env:TINY_VOCA_LLM_KEY   = "local"
+$env:TINY_VOCA_LLM_MODEL = "mock-ar"
+$env:PYTHONIOENCODING    = "utf-8"
+python -m uvicorn server.tts_service:app --host 127.0.0.1 --port 8000
+```
+
+Then open <http://127.0.0.1:8000/demo>, type an Arabic question and press
+« اسأل ». The answer is always the same short sentence: this tests the pipeline,
+not the quality of the LLM. Stop both with `Ctrl+C`.
+
 ## 4. Endpoints
 
 | Method | Path | Body | Reply |
