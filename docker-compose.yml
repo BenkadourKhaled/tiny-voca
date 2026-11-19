@@ -1,0 +1,62 @@
+# Arabic voice answers: local LLM + tiny-voca ONNX API.
+#   start: docker compose up -d --build
+#   logs : docker compose logs -f api
+#   stop : docker compose down          (the ollama_data volume is NOT removed)
+#
+# The model weights live in the named volume, so they survive container rebuilds.
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama-arabic
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # One-shot job: pull the model on a fresh machine, instant on later starts.
+  model-init:
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["ollama pull qwen2.5:14b"]
+    restart: "no"
+
+  api:
+    build: .
+    container_name: tiny-voca-api
+    restart: unless-stopped
+    depends_on:
+      ollama:
+        condition: service_healthy
+      model-init:
+        condition: service_completed_successfully
+    ports:
+      - "8000:8000"
+    environment:
+      TINY_VOCA_LLM_URL: http://ollama:11434/v1/chat/completions
+      TINY_VOCA_LLM_KEY: local
+      TINY_VOCA_LLM_MODEL: qwen2.5:14b
+      TINY_VOCA_LLM_KEEP_ALIVE: "-1"   # keep the 14B model resident (avoids ~27 s reload)
+      TINY_VOCA_LLM_TIMEOUT: "120"     # cold load + first token on CPU
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  ollama_data:
+    name: ollama_data   # reuse the existing volume that holds qwen2.5:14b

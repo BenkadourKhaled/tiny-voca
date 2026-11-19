@@ -24,6 +24,7 @@ import sys
 import threading
 from urllib.parse import quote
 
+import httpx
 import numpy as np
 import onnxruntime as ort
 import soundfile as sf
@@ -201,6 +202,10 @@ def voice_answer(body: AnswerIn):
             ))
         except RuntimeError as error:
             raise HTTPException(503, str(error)) from error
+        except httpx.TimeoutException as error:
+            raise HTTPException(
+                504, "the language model request exceeded the timeout"
+            ) from error
         except Exception as error:
             raise HTTPException(502, f"answer generation failed: {error}") from error
         if not answer:

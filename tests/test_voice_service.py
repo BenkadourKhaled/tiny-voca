@@ -110,6 +110,30 @@ class AnswerTextTests(unittest.TestCase):
         self.assertEqual(messages[-1]["content"], "وهل تعرفني؟")
         self.assertEqual(messages[1]["content"], "اسمي خالد")
 
+    def test_generate_answer_keeps_the_local_model_warm(self):
+        client = Mock(post=Mock(return_value=FakeResponse("مرحبا")))
+        env = {"TINY_VOCA_LLM_KEY": "local", "TINY_VOCA_LLM_KEEP_ALIVE": "-1"}
+        with patch.dict(os.environ, env, clear=True):
+            generate_answer("كيف حالك؟", client=client)
+        kwargs = client.post.call_args.kwargs
+        self.assertEqual(kwargs["json"]["keep_alive"], -1)   # number, not bare string
+        self.assertEqual(kwargs["timeout"], 60.0)   # a cold 14B load takes ~27 s
+
+    def test_generate_answer_accepts_a_keep_alive_duration(self):
+        client = Mock(post=Mock(return_value=FakeResponse("مرحبا")))
+        env = {"TINY_VOCA_LLM_KEY": "local", "TINY_VOCA_LLM_KEEP_ALIVE": "5m"}
+        with patch.dict(os.environ, env, clear=True):
+            generate_answer("كيف حالك؟", client=client)
+        self.assertEqual(client.post.call_args.kwargs["json"]["keep_alive"], "5m")
+
+    def test_generate_answer_omits_keep_alive_for_hosted_apis(self):
+        client = Mock(post=Mock(return_value=FakeResponse("مرحبا")))
+        with patch.dict(os.environ, {"TINY_VOCA_LLM_KEY": "sk-test"}, clear=True):
+            generate_answer("كيف حالك؟", client=client)
+        kwargs = client.post.call_args.kwargs
+        self.assertNotIn("keep_alive", kwargs["json"])
+        self.assertEqual(kwargs["timeout"], 60.0)
+
     def test_generate_answer_without_key_explains_how_to_set_it(self):
         with patch.dict(os.environ, {}, clear=True):
             with self.assertRaisesRegex(RuntimeError, "TINY_VOCA_LLM_KEY"):
@@ -261,6 +285,15 @@ class EndpointTests(unittest.TestCase):
             response = self.client.post("/api/voice/answer", json={"question": "مرحبا"})
         self.assertEqual(response.status_code, 503)
         self.assertIn("no key", response.json()["detail"])
+
+    def test_voice_answer_reports_a_llm_timeout_as_gateway_timeout(self):
+        import httpx
+
+        with patch.object(tts_service, "generate_answer",
+                          side_effect=httpx.TimeoutException("read timeout")):
+            response = self.client.post("/api/voice/answer", json={"question": "مرحبا"})
+        self.assertEqual(response.status_code, 504)
+        self.assertIn("timeout", response.json()["detail"].lower())
 
     def test_voice_answer_rejects_an_empty_question(self):
         self.assertEqual(self.client.post("/api/voice/answer", json={"question": "  "}).status_code, 400)

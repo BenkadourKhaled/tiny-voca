@@ -60,7 +60,7 @@ def generate_answer(question: str, *, client=None, history=None) -> str:
     url = os.getenv("TINY_VOCA_LLM_URL", "https://api.openai.com/v1/chat/completions")
     key = os.getenv("TINY_VOCA_LLM_KEY")
     model = os.getenv("TINY_VOCA_LLM_MODEL", "gpt-4o-mini")
-    timeout = float(os.getenv("TINY_VOCA_LLM_TIMEOUT", "20"))
+    timeout = float(os.getenv("TINY_VOCA_LLM_TIMEOUT", "60"))
     if not key:
         raise RuntimeError(
             "TINY_VOCA_LLM_KEY is not set; for a local server set any value "
@@ -79,6 +79,18 @@ def generate_answer(question: str, *, client=None, history=None) -> str:
         "temperature": 0.3,
         "max_tokens": 160,
     }
+    # Ollama only: keep the model in RAM between questions. The first answer
+    # then costs ~2 s instead of ~27 s on this 14B CPU setup. Left unset for
+    # hosted APIs, which do not accept this parameter.
+    keep_alive = os.getenv("TINY_VOCA_LLM_KEEP_ALIVE")
+    if keep_alive:
+        # Ollama accepts a Go duration ("5m", "-1m") or a number (-1 = forever).
+        # Environment variables are strings, so "-1" must be sent as a number:
+        # as a plain string Ollama tries to parse a duration and rejects it.
+        try:
+            payload["keep_alive"] = int(keep_alive)
+        except ValueError:
+            payload["keep_alive"] = keep_alive
     headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
     if client is None:
         response = httpx.post(url, json=payload, headers=headers, timeout=timeout)

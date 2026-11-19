@@ -1,0 +1,25 @@
+# Keep the build context small: training checkpoints are several GB.
+.git/
+.github/
+.gitignore
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+data/
+runs/
+evaluation/
+ops/
+web/
+node_modules/
+tests/
+*.pt
+*.pth
+*.wav
+# The 21 MB ONNX model and its config MUST reach the image.
+!server/assets/**
+.env
+*.log
+.pytest_cache/
