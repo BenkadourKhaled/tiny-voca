@@ -97,6 +97,19 @@ class AnswerTextTests(unittest.TestCase):
         self.assertEqual(kwargs["json"]["messages"][-1], {"role": "user", "content": "كيف حالك؟"})
         self.assertIn("Modern Standard Arabic", kwargs["json"]["messages"][0]["content"])
 
+    def test_generate_answer_forwards_recent_conversation_turns(self):
+        client = Mock(post=Mock(return_value=FakeResponse("نعم")))
+        with patch.dict(os.environ, {"TINY_VOCA_LLM_KEY": "k"}):
+            generate_answer("وهل تعرفني؟", client=client, history=[
+                {"role": "user", "content": "اسمي خالد"},
+                {"role": "assistant", "content": "مرحبا خالد"},
+            ])
+        messages = client.post.call_args.kwargs["json"]["messages"]
+        self.assertEqual([m["role"] for m in messages],
+                         ["system", "user", "assistant", "user"])
+        self.assertEqual(messages[-1]["content"], "وهل تعرفني؟")
+        self.assertEqual(messages[1]["content"], "اسمي خالد")
+
     def test_generate_answer_without_key_explains_how_to_set_it(self):
         with patch.dict(os.environ, {}, clear=True):
             with self.assertRaisesRegex(RuntimeError, "TINY_VOCA_LLM_KEY"):
@@ -176,11 +189,13 @@ class EndpointTests(unittest.TestCase):
         return samples
 
     def test_demo_page_calls_the_voice_answer_endpoint(self):
-        response = self.client.get("/demo")
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('lang="ar" dir="rtl"', response.text)
-        self.assertIn('fetch("/api/voice/answer"', response.text)
-        self.assertIn("<audio", response.text)
+        for path in ("/demo", "/app"):
+            response = self.client.get(path)
+            self.assertEqual(response.status_code, 200, path)
+            self.assertIn('lang="ar" dir="rtl"', response.text)
+            self.assertIn('fetch("/api/voice/answer"', response.text)
+            self.assertIn('createElement("audio")', response.text)
+            self.assertIn("history: history", response.text)
 
     def test_health_reports_language_frontend_voice_and_attribution(self):
         data = self.client.get("/health").json()
@@ -214,8 +229,21 @@ class EndpointTests(unittest.TestCase):
             response = self.client.post("/api/voice/answer", json={"question": "مرحبا"})
         self.wav(response)
         self.assertEqual(unquote(response.headers["X-Answer-Text"]), answer)
-        generated.assert_called_once_with("مرحبا")
+        generated.assert_called_once()
+        self.assertEqual(generated.call_args.args, ("مرحبا",))
+        self.assertEqual(generated.call_args.kwargs["history"], [])
         vocalize.assert_called_once_with(answer)
+
+    def test_voice_answer_sends_the_conversation_to_the_llm(self):
+        answer = "أنا بخير، شكرًا لك."
+        turns = [{"role": "user", "content": "مرحبا"},
+                 {"role": "assistant", "content": "أهلا بك"}]
+        with patch.object(tts_service, "generate_answer", return_value=answer) as generated, \
+             patch.object(tts_service, "vocalize", return_value=VOCALIZED):
+            response = self.client.post("/api/voice/answer",
+                                        json={"question": "كيف حالك؟", "history": turns})
+        self.wav(response)
+        self.assertEqual(generated.call_args.kwargs["history"], turns)
 
     def test_voice_answer_caches_identical_questions(self):
         answer = "نعم،那是 صحيح."                                     # Latin/Chinese removed by sanitize

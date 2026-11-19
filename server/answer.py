@@ -49,9 +49,11 @@ def cut_at_sentence(text: str, max_chars: int = 300) -> str:
     return (window[:position] if position > 0 else window).strip()
 
 
-def generate_answer(question: str, *, client=None) -> str:
-    """Generate a short Arabic reply.
+def generate_answer(question: str, *, client=None, history=None) -> str:
+    """Generate a short Arabic reply, optionally aware of the conversation.
 
+    ``history`` is a list of ``{"role": "user"|"assistant", "content": str}``
+    turns. Only the last six turns are kept, so the prompt stays small.
     ``client`` is an object with a ``post(url, json=, headers=, timeout=)``
     method; it is only used by the tests. In production the module uses httpx.
     """
@@ -64,12 +66,16 @@ def generate_answer(question: str, *, client=None) -> str:
             "TINY_VOCA_LLM_KEY is not set; for a local server set any value "
             "in it and point TINY_VOCA_LLM_URL at its /v1/chat/completions endpoint"
         )
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    for turn in (history or [])[-6:]:
+        role = turn.get("role")
+        content = str(turn.get("content", "")).strip()
+        if role in ("user", "assistant") and content:
+            messages.append({"role": role, "content": content})
+    messages.append({"role": "user", "content": question})
     payload = {
         "model": model,
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": question},
-        ],
+        "messages": messages,
         "temperature": 0.3,
         "max_tokens": 160,
     }

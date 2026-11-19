@@ -28,7 +28,7 @@ import numpy as np
 import onnxruntime as ort
 import soundfile as sf
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field
 
 from .answer import cut_at_sentence, generate_answer, sanitize
@@ -41,73 +41,10 @@ ATTRIBUTION = (
     "PhD thesis, University of Southampton."
 )
 
-DEMO_HTML = """<!doctype html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>tiny-voca - رسالة صوتية</title>
-<style>
-  body { font-family: Tahoma, Arial, sans-serif; background: #f5f5f7; margin: 0; padding: 2rem; }
-  main { max-width: 640px; margin: auto; background: white; padding: 2rem; border-radius: 12px;
-         box-shadow: 0 2px 12px #0001; }
-  h1 { font-size: 1.3rem; margin-top: 0; }
-  input, button { font-size: 1rem; padding: .7rem; border-radius: 6px; border: 1px solid #bbb; }
-  input { width: 70%; }
-  button { background: #2257b3; color: white; border: 0; cursor: pointer; }
-  button:disabled { background: #999; }
-  audio { width: 100%; margin-top: 1.2rem; }
-  #answer { margin-top: 1rem; font-size: 1.1rem; }
-  #status { color: #666; }
-  small { display: block; margin-top: 2rem; color: #777; line-height: 1.6; }
-</style>
-</head>
-<body>
-<main>
-  <h1>اسأل بالكتابة، واسمع الجواب صوتًا</h1>
-  <input id="question" value="كيف حالك اليوم؟" placeholder="اكتب سؤالك بالعربية">
-  <button id="ask" onclick="ask()">اسأل</button>
-  <p id="status"></p>
-  <audio id="audio" controls></audio>
-  <p id="answer" dir="rtl"></p>
-  <small>الصوت من نموذج tiny-voca العربي (Halabi 2016، CC BY 4.0). قد يستغرق الجواب الأول ثوانٍ.</small>
-</main>
-<script>
-const question = document.getElementById("question");
-const button = document.getElementById("ask");
-const status = document.getElementById("status");
-const audio = document.getElementById("audio");
-const answer = document.getElementById("answer");
-question.addEventListener("keydown", (event) => { if (event.key === "Enter") ask(); });
-let previous = null;
-async function ask() {
-  const text = question.value.trim();
-  if (!text) return;
-  button.disabled = true;
-  status.textContent = "جارٍ إعداد الجواب...";
-  answer.textContent = "";
-  try {
-    const response = await fetch("/api/voice/answer", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: text })
-    });
-    if (!response.ok) throw new Error("HTTP " + response.status);
-    answer.textContent = decodeURIComponent(response.headers.get("X-Answer-Text") || "");
-    if (previous) URL.revokeObjectURL(previous);
-    previous = URL.createObjectURL(await response.blob());
-    audio.src = previous;
-    await audio.play();
-    status.textContent = "تمّ.";
-  } catch (error) {
-    status.textContent = "حدث خطأ: " + error.message;
-  } finally {
-    button.disabled = false;
-  }
-}
-</script>
-</body>
-</html>"""
+APP_PAGE = Path(__file__).resolve().parent / "app.html"
+
+
+
 
 
 class VoiceEngine:
@@ -196,16 +133,18 @@ class TtsIn(BaseModel):
 
 class AnswerIn(BaseModel):
     question: str
+    history: list[dict] = Field(default_factory=list, max_length=12)
     voice: str = "F2"
     speed: float = Field(0.95, ge=0.25, le=4)
     pitch_range: float = Field(1.35, ge=0, le=3)
     max_chars: int = Field(300, ge=40, le=600)
 
 
-@app.get("/demo", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/app", response_class=FileResponse, include_in_schema=False)
+@app.get("/demo", response_class=FileResponse, include_in_schema=False)
 def demo():
-    """A ready-to-use RTL client: type a question, hear the voice answer."""
-    return DEMO_HTML
+    """Ready-to-use RTL client: a question in writing, the answer in voice."""
+    return FileResponse(APP_PAGE, media_type="text/html; charset=utf-8")
 
 
 @app.get("/health")
@@ -251,12 +190,15 @@ def voice_answer(body: AnswerIn):
 
     key = hashlib.sha256(
         f"{engine.model}|{question}|{body.max_chars}|{body.voice}|"
-        f"{body.speed}|{body.pitch_range}".encode("utf-8")
+        f"{body.speed}|{body.pitch_range}|"
+        f"{json.dumps(body.history, ensure_ascii=False, sort_keys=True)}".encode("utf-8")
     ).hexdigest()
     cached = _answer_cache.get(key)
     if cached is None:
         try:
-            answer = sanitize(cut_at_sentence(generate_answer(question), body.max_chars))
+            answer = sanitize(cut_at_sentence(
+                generate_answer(question, history=body.history), body.max_chars
+            ))
         except RuntimeError as error:
             raise HTTPException(503, str(error)) from error
         except Exception as error:

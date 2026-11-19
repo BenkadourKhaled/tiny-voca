@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tiny-voca | محادثة صوتية عربية</title>
+<style>
+  :root { --blue:#2257b3; --bg:#f4f6fa; --user:#dce8ff; --bot:#fff; --line:#dfe3ea; }
+  * { box-sizing: border-box; }
+  body { font-family: Tahoma, "Segoe UI", Arial, sans-serif; margin:0; background:var(--bg); color:#1d2433; }
+  header { background:var(--blue); color:white; padding:1rem 1.2rem; }
+  header h1 { margin:0; font-size:1.2rem; }
+  header p { margin:.35rem 0 0; font-size:.85rem; opacity:.9; }
+  main { max-width:760px; margin:0 auto; padding:1rem; }
+  #chat { display:flex; flex-direction:column; gap:.8rem; min-height:55vh; }
+  .msg { max-width:82%; padding:.75rem 1rem; border-radius:14px; line-height:1.8; box-shadow:0 1px 4px #0001; }
+  .user { align-self:flex-end; background:var(--user); border-bottom-left-radius:3px; }
+  .bot { align-self:flex-start; background:var(--bot); border:1px solid var(--line); border-bottom-right-radius:3px; }
+  .error { align-self:center; background:#ffe6e6; color:#8a1f1f; }
+  .typing { align-self:flex-start; color:#666; font-size:.9rem; }
+  .label { font-size:.72rem; color:#777; margin-bottom:.25rem; }
+  audio { width:100%; margin-top:.7rem; height:36px; }
+  #composer { display:flex; gap:.6rem; position:sticky; bottom:0; background:var(--bg); padding:.8rem 0 1.2rem; }
+  #question { flex:1; padding:.8rem 1rem; font-size:1rem; border:1px solid var(--line); border-radius:10px; }
+  button { padding:.7rem 1.1rem; border:0; border-radius:10px; cursor:pointer; font-size:.95rem; }
+  #send { background:var(--blue); color:white; }
+  #clear { background:#e6e9ef; color:#333; }
+  button:disabled { opacity:.55; cursor:default; }
+  footer { text-align:center; color:#777; font-size:.75rem; padding:1rem; line-height:1.7; }
+</style>
+</head>
+<body>
+<header>
+  <h1>تحدث مع مساعدك الصوتي</h1>
+  <p>اكتب سؤالك بالعربية، وستصلك الإجابة مكتوبة ومسموعة. ابدأ محادثة جديدة.</p>
+</header>
+<main>
+  <div id="chat" aria-live="polite"></div>
+  <div id="composer">
+    <input id="question" autocomplete="off" placeholder="اكتب سؤالك هنا..."
+           value="كيف حالك اليوم؟">
+    <button id="send" onclick="send()">أرسل</button>
+    <button id="clear" onclick="clearChat()">جديد</button>
+  </div>
+</main>
+<footer>
+  الصوت من نموذج tiny-voca العربي، مبني على Arabic Speech Corpus (Halabi 2016)، CC BY 4.0.<br>
+  Halabi, Nawar (2016). Modern standard Arabic phonetics for speech synthesis. PhD thesis, University of Southampton.
+</footer>
+<script>
+const chat = document.getElementById("chat");
+const input = document.getElementById("question");
+const sendButton = document.getElementById("send");
+let history = [];
+let busy = false;
+
+function bubble(kind, html) {
+  const div = document.createElement("div");
+  div.className = "msg " + kind;
+  div.innerHTML = html;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+function escapeHtml(text) {
+  const node = document.createElement("span");
+  node.textContent = text;
+  return node.innerHTML;
+}
+
+function addUser(text) {
+  bubble("user", '<div class="label">سؤالك</div>' + escapeHtml(text));
+}
+
+function addBot(text, blob) {
+  const div = bubble("bot", '<div class="label">الجواب</div><div class="text">' +
+                     escapeHtml(text) + "</div>");
+  const audio = document.createElement("audio");
+  audio.controls = true;
+  audio.src = URL.createObjectURL(blob);
+  div.appendChild(audio);
+  audio.play().catch(() => {});          // the controls remain if the browser blocks autoplay
+  return audio;
+}
+
+async function send() {
+  if (busy) return;
+  const question = input.value.trim();
+  if (!question) return;
+  busy = true;
+  sendButton.disabled = true;
+  input.value = "";
+  addUser(question);
+  const waiting = bubble("typing", "جارٍ إعداد الجواب...");
+  try {
+    const response = await fetch("/api/voice/answer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: question, history: history })
+    });
+    if (!response.ok) {
+      let detail = "HTTP " + response.status;
+      try { detail = (await response.json()).detail || detail; } catch (error) {}
+      throw new Error(detail);
+    }
+    const answer = decodeURIComponent(response.headers.get("X-Answer-Text") || "");
+    const audio = await response.blob();
+    waiting.remove();
+    addBot(answer, audio);
+    history.push({ role: "user", content: question },
+                 { role: "assistant", content: answer });
+    if (history.length > 12) history = history.slice(-12);
+  } catch (error) {
+    waiting.remove();
+    bubble("error", "حدث خطأ: " + escapeHtml(error.message));
+  } finally {
+    busy = false;
+    sendButton.disabled = false;
+    input.focus();
+  }
+}
+
+function clearChat() {
+  chat.innerHTML = "";
+  history = [];
+  input.focus();
+}
+
+input.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") { event.preventDefault(); send(); }
+});
+input.focus();
+</script>
+</body>
+</html>
