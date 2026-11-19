@@ -164,6 +164,13 @@ class EndpointTests(unittest.TestCase):
         self.assertGreater(len(samples), 0)
         return samples
 
+    def test_demo_page_calls_the_voice_answer_endpoint(self):
+        response = self.client.get("/demo")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('lang="ar" dir="rtl"', response.text)
+        self.assertIn('fetch("/api/voice/answer"', response.text)
+        self.assertIn("<audio", response.text)
+
     def test_health_reports_language_frontend_voice_and_attribution(self):
         data = self.client.get("/health").json()
         self.assertEqual(data["status"], "ok")

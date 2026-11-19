@@ -76,7 +76,11 @@ $env:MKL_NUM_THREADS = "4"
 python -m uvicorn server.tts_service:app --host 0.0.0.0 --port 8000
 ```
 
-Interactive documentation: <http://127.0.0.1:8000/docs>.
+Interactive documentation: <http://127.0.0.1:8000/docs>.  
+**Ready-to-use test page: <http://127.0.0.1:8000/demo>** — type a question in
+Arabic, press « اسأل » and hear the voice answer. It calls the API on the same
+origin, so no CORS setup is needed.
+
 The ONNX session is created once at the first request and protected by a lock;
 it is never reloaded per request.
 
