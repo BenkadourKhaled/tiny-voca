@@ -236,6 +236,15 @@ class EndpointTests(unittest.TestCase):
         self.assertIn('response.headers.get("X-Answer-Text")', html)
         self.assertIn("history.push", html)
 
+    def test_demo_page_has_a_wide_player_with_visible_progress(self):
+        html = self.client.get("/app").text
+        self.assertIn("width:min(100%, 560px)", html)   # no 300 px intrinsic audio width
+        self.assertIn("height:54px", html)
+        self.assertIn("timeupdate", html)               # elapsed / total time
+        self.assertIn("formatTime(audio.currentTime)", html)
+        self.assertIn("class=\"spinner\"", html)        # visible while the LLM works
+        self.assertIn("@media (max-width:600px)", html)
+
     def test_health_reports_language_frontend_voice_and_attribution(self):
         data = self.client.get("/health").json()
         self.assertEqual(data["status"], "ok")

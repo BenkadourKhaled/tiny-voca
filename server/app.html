@@ -15,13 +15,19 @@
   #chat { display:flex; flex-direction:column; gap:.8rem; min-height:55vh; }
   .msg { max-width:82%; padding:.75rem 1rem; border-radius:14px; line-height:1.8; box-shadow:0 1px 4px #0001; }
   .user { align-self:flex-end; background:var(--user); border-bottom-left-radius:3px; }
-  .bot { align-self:flex-start; background:var(--bot); border:1px solid var(--line); border-bottom-right-radius:3px; }
+  .bot { align-self:flex-start; width:min(100%, 560px); background:var(--bot); border:1px solid var(--line); border-bottom-right-radius:3px; }
   .error { align-self:center; background:#ffe6e6; color:#8a1f1f; }
   .typing { align-self:flex-start; color:#666; font-size:.9rem; }
   .label { font-size:.72rem; color:#777; margin-bottom:.25rem; }
   /* Keep the answer text in the DOM (history/debug) but show voice only. */
   .bot .text { display: none; }
-  audio { width:100%; margin-top:.7rem; height:36px; }
+  audio { display:block; width:100%; margin-top:.8rem; height:54px; }
+  .meta { font-size:.75rem; color:#666; margin-top:.35rem; direction:ltr; text-align:right; }
+  .spinner { display:inline-block; width:.8em; height:.8em; border:2px solid #c7d2e6;
+             border-top-color:var(--blue); border-radius:50%; margin-inline-end:.4rem;
+             vertical-align:-1px; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @media (max-width:600px) { .bot { width:100%; } }
   #composer { display:flex; gap:.6rem; position:sticky; bottom:0; background:var(--bg); padding:.8rem 0 1.2rem; }
   #question { flex:1; padding:.8rem 1rem; font-size:1rem; border:1px solid var(--line); border-radius:10px; }
   button { padding:.7rem 1.1rem; border:0; border-radius:10px; cursor:pointer; font-size:.95rem; }
@@ -75,13 +81,32 @@ function addUser(text) {
   bubble("user", '<div class="label">سؤالك</div>' + escapeHtml(text));
 }
 
+function formatTime(seconds) {
+  if (!isFinite(seconds) || seconds < 0) return "0:00";
+  const minutes = Math.floor(seconds / 60);
+  return minutes + ":" + String(Math.floor(seconds % 60)).padStart(2, "0");
+}
+
 function addBot(text, blob) {
   const div = bubble("bot", '<div class="label">رسالة صوتية</div><div class="text">' +
                      escapeHtml(text) + "</div>");
   const audio = document.createElement("audio");
   audio.controls = true;
+  audio.preload = "auto";
   audio.src = URL.createObjectURL(blob);
   div.appendChild(audio);
+  // Explicit elapsed / total time so playback progress is always visible.
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.textContent = "0:00 / 0:00";
+  div.appendChild(meta);
+  const updateProgress = () => {
+    meta.textContent = formatTime(audio.currentTime) + " / " + formatTime(audio.duration);
+  };
+  audio.addEventListener("loadedmetadata", updateProgress);
+  audio.addEventListener("timeupdate", updateProgress);
+  audio.addEventListener("ended", updateProgress);
+  updateProgress();
   audio.play().catch(() => {});          // the controls remain if the browser blocks autoplay
   return audio;
 }
@@ -94,7 +119,7 @@ async function send() {
   sendButton.disabled = true;
   input.value = "";
   addUser(question);
-  const waiting = bubble("typing", "جارٍ إعداد الجواب...");
+  const waiting = bubble("typing", '<span class="spinner"></span>جارٍ إعداد الجواب الصوتي...');
   try {
     const response = await fetch("/api/voice/answer", {
       method: "POST",
